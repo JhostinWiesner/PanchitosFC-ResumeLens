@@ -1,8 +1,8 @@
 # PanchitosFC - ResumeLens
 
-ResumeLens procesa currículums en texto plano y determina si las calificaciones identificadas satisfacen los patrones formales definidos para un perfil profesional, aplicando expresiones regulares, transductores de estados finitos, autómatas finitos y gramáticas libres de contexto en un mismo pipeline compartido.
+ResumeLens processes plain-text resumes and determines whether the identified qualifications meet the formal criteria defined for a professional profile, applying regular expressions, finite-state transducers, finite automata, and context-free grammars within a single shared pipeline.
 
-## Perfiles soportados
+## Supported profiles
 
 | Perfil | Responsable |
 |---|---|
@@ -11,35 +11,36 @@ ResumeLens procesa currículums en texto plano y determina si las calificaciones
 | _____________ (propio, software engineering) | Juan Felipe Correa |
 | _____________ (propio, AI/data) | Juan Felipe Correa |
 
-> Los 4 perfiles corren sobre **la misma solución de software genérica** — ver `profiles/base.py`. Ningún perfil tiene una implementación de pipeline aislada.
+> All 4 profiles run on **the same generic software solution** — see `profiles/base.py`. No profile has an isolated pipeline implementation.
 
-## Stack técnico
+## Technologies used
 
 - **UI**: Streamlit
-- **Extracción (Stage 1)**: `re` (módulo estándar de Python)
-- **Normalización (Stage 2)**: `pyformlang` (transductores de estados finitos)
-- **Reconocimiento (Stage 3)**: `pyformlang` (`FiniteAutomaton`)
-- **Gramática de perfil de candidato (Stage 4)**: `textX`
+- **Extraction (Stage 1)**: `re` (Python standard module)
+- **Normalization (Stage 2)**: `pyformlang` (finite-state transducers)
+- **Recognition (Stage 3)**: `pyformlang` (`FiniteAutomaton`)
+- **Candidate profile grammar (Stage 4)**: `textX`
 
-## Estructura del proyecto
+## Project structure
 
 ```
 resumelens/
-├── app.py                      # Entry point de Streamlit
+├── app.py                      # Streamlit entry point
 ├── core/
+|   ├── types.py                 # Typed dataclasses for each stage
 │   ├── extraction.py            # Stage 1 — regex
 │   ├── normalization.py         # Stage 2 — FST
-│   ├── recognition.py           # Stage 3 — autómatas
+│   ├── recognition.py           # Stage 3 — automata
 │   └── grammar/
-│       ├── candidate.tx         # Gramática textX
-│       └── grammar.py           # Carga del modelo + validación + visualización
+│       ├── candidate.tx         # textX grammar
+│       └── grammar.py           # Model upload + validation + visualization
 ├── profiles/
-│   ├── base.py                  # Clase Profile (contrato común)
+│   ├── base.py                  # Profile base class (common contract)
 │   ├── full_stack.py
 │   ├── ml_engineer.py
 │   ├── profile_own_1.py
 │   └── profile_own_2.py
-├── pipeline.py                  # Orquestador: corre las 4 etapas en orden
+├── pipeline.py                  # Ochestrator: runs all stages in order
 └── tests/
     ├── test_extraction.py
     ├── test_normalization.py
@@ -47,34 +48,31 @@ resumelens/
     └── test_grammar.py
 ```
 
-## Arquitectura del pipeline
+## Pipeline architecture
 
-Cada etapa recibe y entrega una `dataclass` tipada — ningún dato intermedio se pasa como diccionario suelto:
+Each stage receives and returns a typed `dataclass`—no intermediate data is passed as a standalone dictionary:
 
-1. **`extract(resume_text) -> ExtractedData`** — información cruda extraída por regex (contacto, resumen y experiencia se extraen literal del texto, sin reescritura).
-2. **`normalize(data, profile) -> NormalizedQualifications`** — calificaciones transformadas a su forma canónica y ordenadas según `profile.canonical_order`.
-3. **`recognize(normalized, profile) -> ClassificationResult`** — evalúa contra el `FiniteAutomaton` del perfil; la explicación del resultado (ACCEPTED/REJECTED) se arma con **plantilla fija por perfil**.
-4. **`build_candidate_profile(...) -> CandidateProfile`** — estructura todo lo anterior según la gramática textX y genera la visualización HTML/Markdown final.
+1. **`extract(resume_text) -> ExtractedData`** — raw information extracted using regular expressions (contact information, summary, and experience are extracted verbatim from the text, without rewriting).
+2. **`normalize(extracted) -> NormalizedQualifications`** — qualifications transformed into their canonical form.
+3. **`order(normalized, profile) -> OrderedQualifications`** — qualifications ordered according to `profile.canonical_order`.
+4. **`recognize(ordered, profile) -> ClassificationResult`** — evaluates against the profile’s `FiniteAutomaton`; the explanation for the result (ACCEPTED/REJECTED) is constructed using a **fixed template per profile**.
+5. **`build_candidate_profile(...) -> CandidateProfile`** — structures all of the above according to the textX grammar and generates the final HTML/Markdown visualization.
 
-El objeto `Profile` (`profiles/base.py`) es lo único que cambia entre perfiles: nombre, orden canónico, reglas del FST, y el autómata de patrón aceptado. `pipeline.py` no contiene lógica específica de ningún perfil.
+The `Profile` object (`profiles/base.py`) is the only thing that changes between profiles: name, canonical order, FST rules, and the accepted pattern automaton. `pipeline.py` does not contain any profile-specific logic.
 
-## Cómo correr el proyecto
+## How to run the project
 
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## Cómo correr los tests
+## How to run the tests
 
 ```bash
 pytest tests/
 ```
 
-## Convenciones de nombres canónicos
+## Canonical names configuration
 
 _(completar aquí una vez que el equipo cierre esta tarea — ver tarjeta correspondiente en Trello)_
-
-## Estado del proyecto
-
-Ver el tablero de Trello del equipo para el estado de cada etapa por perfil.
