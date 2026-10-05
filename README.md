@@ -8,8 +8,8 @@ ResumeLens processes plain-text resumes and determines whether the identified qu
 |---|---|
 | Full Stack Developer | Jhostin Wiesner |
 | Machine Learning Engineer | Juan Diego Garcés |
-| _____________ (propio, software engineering) | Juan Felipe Correa |
-| _____________ (propio, AI/data) | Juan Felipe Correa |
+| DevOps | Juan Felipe Correa |
+| Data Engineer | Juan Felipe Correa |
 
 > All 4 profiles run on **the same generic software solution** — see `profiles/base.py`. No profile has an isolated pipeline implementation.
 
@@ -82,7 +82,7 @@ Catalog shared by the 4 profiles. It is read by Stage 1 (extraction), Stage 2 (n
 
 ---
 
-## 1. Naming rules
+### 1. Naming rules
 
 | Rule | Example |
 |---|---|
@@ -92,11 +92,10 @@ Catalog shared by the 4 profiles. It is read by Stage 1 (extraction), Stage 2 (n
 | Official English name | `POSTGRESQL`, not `POSTGRES` |
 | Aliases are not canonical names | `JS`, `Javascript` → `JAVASCRIPT` |
 | Each name belongs to **exactly one category** | `GIT` → `VCS` |
-| Each name is a single alphabet symbol (Stage 2 output Γ, Stage 3 input Σ) | — |
 
 ---
 
-## 2. Global catalog
+### 2. Global catalog
 
 The row order within each category serves as the **tie-breaker** for `order()`.
 
@@ -147,7 +146,7 @@ The row order within each category serves as the **tie-breaker** for `order()`.
 
 ---
 
-## 3. Canonical category order by profile
+### 3. Canonical category order by profile
 
 | Profile | Canonical order |
 |---|---|
@@ -158,7 +157,7 @@ The row order within each category serves as the **tie-breaker** for `order()`.
 
 Team convention: `LANGUAGE` first and `VCS` always last.
 
-### Qualifications by profile and category
+#### Qualifications by profile and category
 
 **Full Stack Developer**
 - `LANGUAGE`: JAVASCRIPT, TYPESCRIPT
@@ -191,12 +190,12 @@ Team convention: `LANGUAGE` first and `VCS` always last.
 
 ---
 
-## 4. Ordering rules (`order()`)
+### 4. Ordering rules (`order()`)
 
 1. **Tie-breaking within a category:** the order in which qualifications appear in the global catalog (section 2) is used, not the order in which the candidate wrote them.
 2. **Categories not used by the profile:** `order()` **ignores** them for that profile. ResumeLens evaluates whether a pattern is met; it does not penalize the candidate for having other skills. ### Examples
 
-### Examples
+#### Examples
 
 | Profile       | Input                                                      | Sorted Output                                             |
 |---------------|------------------------------------------------------------|-----------------------------------------------------------|
