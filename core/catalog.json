@@ -1,0 +1,270 @@
+{
+  "version": 1,
+  "description": "ResumeLens technical skills catalog: maps raw skill text (aliases) to a canonical name and category. Array order inside each category is the tie-breaker for order(). Variants of the canonical name itself (e.g. 'python', 'node js') are added by the loader, not listed here.",
+  "qualifications": [
+    {
+      "canonical": "JAVASCRIPT",
+      "category": "LANGUAGE",
+      "aliases": [
+        "JS",
+        "Javascript",
+        "ECMAScript"
+      ]
+    },
+    {
+      "canonical": "TYPESCRIPT",
+      "category": "LANGUAGE",
+      "aliases": [
+        "TS"
+      ]
+    },
+    {
+      "canonical": "PYTHON",
+      "category": "LANGUAGE",
+      "aliases": [
+        "py",
+        "Python3"
+      ]
+    },
+    {
+      "canonical": "BASH",
+      "category": "LANGUAGE",
+      "aliases": [
+        "Shell",
+        "Shell scripting",
+        "sh"
+      ]
+    },
+    {
+      "canonical": "GO",
+      "category": "LANGUAGE",
+      "aliases": [
+        "Golang"
+      ]
+    },
+    {
+      "canonical": "REACT",
+      "category": "FRONTEND",
+      "aliases": [
+        "React.js",
+        "ReactJS"
+      ]
+    },
+    {
+      "canonical": "ANGULAR",
+      "category": "FRONTEND",
+      "aliases": [
+        "Angular.js",
+        "AngularJS"
+      ]
+    },
+    {
+      "canonical": "VUE",
+      "category": "FRONTEND",
+      "aliases": [
+        "Vue.js",
+        "VueJS"
+      ]
+    },
+    {
+      "canonical": "NODE_JS",
+      "category": "BACKEND",
+      "aliases": [
+        "NodeJS",
+        "Node.js",
+        "Node"
+      ]
+    },
+    {
+      "canonical": "DJANGO",
+      "category": "BACKEND",
+      "aliases": []
+    },
+    {
+      "canonical": "SPRING_BOOT",
+      "category": "BACKEND",
+      "aliases": [
+        "Spring",
+        "SpringBoot"
+      ]
+    },
+    {
+      "canonical": "REST_API",
+      "category": "BACKEND",
+      "aliases": [
+        "REST",
+        "RESTful"
+      ]
+    },
+    {
+      "canonical": "SQL",
+      "category": "DATABASE",
+      "aliases": []
+    },
+    {
+      "canonical": "POSTGRESQL",
+      "category": "DATABASE",
+      "aliases": [
+        "Postgres",
+        "psql"
+      ]
+    },
+    {
+      "canonical": "MONGODB",
+      "category": "DATABASE",
+      "aliases": [
+        "Mongo"
+      ]
+    },
+    {
+      "canonical": "MYSQL",
+      "category": "DATABASE",
+      "aliases": []
+    },
+    {
+      "canonical": "SNOWFLAKE",
+      "category": "DATABASE",
+      "aliases": []
+    },
+    {
+      "canonical": "PANDAS",
+      "category": "ML_LIBRARY",
+      "aliases": []
+    },
+    {
+      "canonical": "NUMPY",
+      "category": "ML_LIBRARY",
+      "aliases": []
+    },
+    {
+      "canonical": "SCIKIT_LEARN",
+      "category": "ML_LIBRARY",
+      "aliases": [
+        "sklearn",
+        "scikit-learn"
+      ]
+    },
+    {
+      "canonical": "TENSORFLOW",
+      "category": "ML_LIBRARY",
+      "aliases": [
+        "TF"
+      ]
+    },
+    {
+      "canonical": "PYTORCH",
+      "category": "ML_LIBRARY",
+      "aliases": [
+        "torch"
+      ]
+    },
+    {
+      "canonical": "SPARK",
+      "category": "DATA_PROCESSING",
+      "aliases": [
+        "Apache Spark",
+        "PySpark"
+      ]
+    },
+    {
+      "canonical": "KAFKA",
+      "category": "DATA_PROCESSING",
+      "aliases": [
+        "Apache Kafka"
+      ]
+    },
+    {
+      "canonical": "HADOOP",
+      "category": "DATA_PROCESSING",
+      "aliases": [
+        "Apache Hadoop"
+      ]
+    },
+    {
+      "canonical": "DBT",
+      "category": "DATA_PROCESSING",
+      "aliases": [
+        "dbt"
+      ]
+    },
+    {
+      "canonical": "AIRFLOW",
+      "category": "WORKFLOW",
+      "aliases": [
+        "Apache Airflow"
+      ]
+    },
+    {
+      "canonical": "DOCKER",
+      "category": "CONTAINER",
+      "aliases": [
+        "Docker Compose"
+      ]
+    },
+    {
+      "canonical": "KUBERNETES",
+      "category": "CONTAINER",
+      "aliases": [
+        "K8s",
+        "kube"
+      ]
+    },
+    {
+      "canonical": "JENKINS",
+      "category": "CI_CD",
+      "aliases": []
+    },
+    {
+      "canonical": "GITHUB_ACTIONS",
+      "category": "CI_CD",
+      "aliases": [
+        "GH Actions",
+        "Github Actions"
+      ]
+    },
+    {
+      "canonical": "GITLAB_CI",
+      "category": "CI_CD",
+      "aliases": [
+        "GitLab CI/CD"
+      ]
+    },
+    {
+      "canonical": "TERRAFORM",
+      "category": "IAC",
+      "aliases": []
+    },
+    {
+      "canonical": "ANSIBLE",
+      "category": "IAC",
+      "aliases": []
+    },
+    {
+      "canonical": "AWS",
+      "category": "CLOUD",
+      "aliases": [
+        "Amazon Web Services"
+      ]
+    },
+    {
+      "canonical": "GCP",
+      "category": "CLOUD",
+      "aliases": [
+        "Google Cloud",
+        "Google Cloud Platform"
+      ]
+    },
+    {
+      "canonical": "AZURE",
+      "category": "CLOUD",
+      "aliases": [
+        "Microsoft Azure"
+      ]
+    },
+    {
+      "canonical": "GIT",
+      "category": "VCS",
+      "aliases": []
+    }
+  ]
+}
