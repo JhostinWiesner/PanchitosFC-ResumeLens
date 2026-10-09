@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from text import normalize_text
+
 import json
 import re
-import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterator
@@ -15,16 +16,6 @@ _JOINERS = (" ", "-", ".", "", "_")  # cómo se pueden unir las palabras de un n
 
 class CatalogError(ValueError):
     """El archivo del catálogo es inválido o inconsistente."""
-
-
-def normalize_text(text: str) -> str:
-    """Forma de comparación: Unicode NFKC, minúsculas y espacios colapsados.
-
-    No elimina puntuación: ``node.js`` y ``nodejs`` son formas distintas
-    (las dos quedan registradas como variantes o alias).
-    """
-    return " ".join(unicodedata.normalize("NFKC", text).casefold().split())
-
 
 def name_variants(canonical: str) -> tuple[str, ...]:
     """Variantes automáticas de un nombre canónico (opción A).
@@ -54,7 +45,7 @@ class Qualification:
     category: str
     aliases: tuple[str, ...]
     position: int
-    surface_forms: tuple[str, ...]  # alias + variantes del canónico, ya normalizados
+    spellings: tuple[str, ...]  # alias + variantes del canónico, ya normalizados
 
 
 class Catalog:
@@ -63,16 +54,16 @@ class Catalog:
     def __init__(self, qualifications: tuple[Qualification, ...]) -> None:
         self._items = qualifications
         self._by_canonical = {q.canonical: q for q in qualifications}
-        self._by_surface: dict[str, str] = {}
+        self._by_spelling: dict[str, str] = {}
         for q in qualifications:
-            for form in q.surface_forms:
-                owner = self._by_surface.get(form)
+            for form in q.spellings:
+                owner = self._by_spelling.get(form)
                 if owner is not None and owner != q.canonical:
                     raise CatalogError(
                         f"El texto '{form}' apunta a dos calificaciones: "
                         f"{owner} y {q.canonical}"
                     )
-                self._by_surface[form] = q.canonical
+                self._by_spelling[form] = q.canonical
 
     # ---- construcción -------------------------------------------------
     @classmethod
@@ -125,11 +116,6 @@ class Catalog:
             )
         return cls(tuple(items))
 
-    # ---- consulta -------------------------------------------------------
-    def normalize(self, raw_text: str) -> str | None:
-        """Nombre canónico de un texto crudo, o ``None`` si no está en el catálogo."""
-        return self._by_surface.get(normalize_text(raw_text))
-
     def get(self, canonical: str) -> Qualification:
         try:
             return self._by_canonical[canonical]
@@ -148,16 +134,9 @@ class Catalog:
         """Categorías en orden de primera aparición en el JSON."""
         return tuple(dict.fromkeys(q.category for q in self._items))
 
-    def surface_forms(self) -> dict[str, str]:
+    def spellings(self) -> dict[str, str]:
         """Todos los textos reconocidos (normalizados) -> canónico. Insumo del FST."""
-        return dict(self._by_surface)
-
-    def terms_longest_first(self) -> list[str]:
-        """Textos reconocidos, del más largo al más corto. Insumo de la regex.
-
-        Así una alternación prefiere ``google cloud platform`` a ``google cloud``.
-        """
-        return sorted(self._by_surface, key=lambda t: (-len(t), t))
+        return dict(self._by_spelling)
 
     def __iter__(self) -> Iterator[Qualification]:
         return iter(self._items)
