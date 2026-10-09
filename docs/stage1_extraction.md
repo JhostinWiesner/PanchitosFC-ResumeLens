@@ -1,34 +1,34 @@
-## Proceso de extracción
+# Extraction Process
 
-**Nivel 1 — Detección de secciones.** El currículum no tiene una estructura fija, así que primero hay que ubicar los límites de cada sección (resumen, skills, experiencia, educación) dentro del texto completo. Esto se hace buscando líneas que coincidan con uno de los encabezados conocidos (por ejemplo "Skills", "Technical Skills", "Experience", "Education", con sinónimos). Una vez localizado un encabezado, todo el texto entre ese encabezado y el siguiente (o el final del documento) se considera el contenido de esa sección. Este nivel no extrae datos todavía — solo recorta el texto en bloques más pequeños y manejables.
+**Level 1 — Section Detection.** A resume does not have a fixed structure, so the first step is to locate the boundaries of each section (summary, skills, experience, education) within the full text. This is done by searching for lines that match one of the known headings (for example, “Skills,” “Technical Skills,” “Experience,” “Education,” or synonyms). Once a heading is located, all the text between that heading and the next one (or the end of the document) is considered the content of that section. This level does not extract data yet—it simply breaks the text down into smaller, more manageable blocks.
 
-**Nivel 2 — Extracción de campos dentro de cada bloque.** Sobre cada bloque ya aislado (o sobre el texto completo, en el caso de datos de contacto que no están atados a ninguna sección) se aplican expresiones regulares específicas por tipo de dato: una para emails, otra para teléfonos, otra para separar skills por comas, otra para identificar el período de una experiencia laboral, etc. Cada una reconoce un patrón léxico puntual, no la estructura general del documento — esa ya quedó resuelta en el nivel 1.
+**Level 2 — Extraction of fields within each block.** Specific regular expressions tailored to each data type are applied to each isolated block (or to the entire text, in the case of contact information not tied to any section): one for email addresses, another for phone numbers, another to separate skills with commas, another to identify the duration of work experience, and so on. Each one recognizes a specific lexical pattern, not the document’s overall structure—that was already handled in Level 1.
 
-La separación en dos niveles es la que permite que el extractor tolere currículums con secciones en distinto orden o con distintos títulos de sección, sin tener que escribir una regex gigante que intente capturar el documento entero de una sola vez.
+This two-level separation is what allows the extractor to handle resumes with sections in different orders or with different section titles, without having to write a giant regex that attempts to capture the entire document at once.
 
 ---
 
-## Definiciones de las expresiones regulares
+## Definitions of Regular Expressions
 
-### Nivel 1 — Encabezado de sección
+### Level 1 — Section Heading
 
 ```
 ^(TECHNICAL SKILLS|SKILLS|TECHNOLOGIES|TECH STACK|EXPERIENCE|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|EMPLOYMENT|EDUCATION|ACADEMIC BACKGROUND|ACADEMIC QUALIFICATIONS):?$
 ```
 
-(aplicada sin distinguir mayúsculas/minúsculas, y anclada al inicio y fin de línea)
+(applied case-insensitively, and anchored to the beginning and end of the line)
 
-**Qué reconoce:** una línea completa que sea exactamente uno de los nombres de sección conocidos, con dos puntos opcionales al final. El símbolo `|` indica una alternativa entre varias palabras o frases posibles — es decir, la línea debe coincidir con una (y solo una) de esas opciones completas, no con una parte de ella. El acento circunflejo al inicio y el signo de dólar al final obligan a que la coincidencia abarque toda la línea, para no confundir, por ejemplo, la palabra "Experience" si aparece mencionada dentro de un párrafo de texto libre.
+**What it recognizes:** a complete line that is exactly one of the known section names, with an optional colon at the end. The `|` symbol indicates a choice between several possible words or phrases—that is, the line must match one (and only one) of those complete options, not just a part of it. The circumflex accent at the beginning and the dollar sign at the end ensure that the match covers the entire line, so as not to confuse, for example, the word “Experience” if it appears within a paragraph of free-form text.
 
 ---
 
-### Nombre del candidato
+### Candidate's Name
 
 ```
 ^[A-Z][a-z]+( [A-Z][a-z]+){1,3}$
 ```
 
-**Qué reconoce:** una línea formada por 2 a 4 palabras, cada una empezando con una letra mayúscula de A a Z seguida de una o más letras minúsculas de a a z, separadas por un espacio simple. Se aplica solo sobre las primeras líneas del documento, antes de cualquier encabezado de sección, porque el mismo patrón de "palabras con mayúscula inicial" también aparece más abajo en nombres de organizaciones.
+**What it matches:** a line consisting of 2 to 4 words, each beginning with an uppercase letter from A to Z followed by one or more lowercase letters from a to z, separated by a single space. This applies only to the first lines of the document, before any section headers, because the same pattern of “words with an initial capital letter” also appears later in organization names.
 
 ---
 
@@ -38,54 +38,99 @@ La separación en dos niveles es la que permite que el extractor tolere currícu
 [A-Za-z0-9.]+@[A-Za-z0-9]+\.[A-Za-z]{2,}
 ```
 
-**Qué reconoce:** una secuencia de letras, dígitos o puntos antes del símbolo arroba; después del arroba, una secuencia de letras o dígitos; luego un punto literal; y finalmente al menos dos letras (la terminación del dominio, como "com" o "co"). El `{2,}` indica "dos o más repeticiones" de ese último grupo de letras.
+**What it recognizes:** a sequence of letters, digits, or dots, followed by the `@` symbol, followed by another sequence of letters or digits, followed by a dot, and ending with at least two letters. This is a simplified version of the official email regex, which is much more complex; it is sufficient for the purpose of extracting candidate emails from resumes.
 
 ---
 
-### Teléfono
+### Phone number
 
 ```
 [0-9]{2,4}[- ]?[0-9]{3,4}[- ]?[0-9]{3,4}
 ```
 
-**Qué reconoce:** grupos de 2 a 4 dígitos, luego 3 a 4 dígitos, luego 3 a 4 dígitos, cada grupo separado opcionalmente por un espacio o un guión. Esto cubre distintos formatos regionales de número telefónico sin exigir uno exacto, ya que el enunciado no fija un formato único.
+**What it recognizes:** groups of 2 to 4 digits, then 3 to 4 digits, then 3 to 4 digits, each group separated optionally by a space or a dash. This covers different regional formats of phone numbers without requiring one exact format, since the statement does not specify a single format.
 
 ---
 
-### Ubicación (LinkedIn/GitHub se explican igual, solo cambia el dominio)
+### Location (LinkedIn/GitHub)
 
 ```
 LINKEDIN.COM/IN/[A-Za-z0-9-]+
 ```
 
-**Qué reconoce:** el texto literal "linkedin.com/in/" (sin importar mayúsculas o minúsculas) seguido de una o más letras, dígitos o guiones, que corresponde al nombre de usuario.
+**What it recognizes:** the literal text "linkedin.com/in/" (regardless of case) followed by one or more letters, digits, or hyphens, which corresponds to the username.
 
 ---
 
-### Separador de skills (dentro de la sección de skills ya aislada en el Nivel 1)
+### Skills separator (within the skills section already isolated at Level 1)
 
 ```
 [,;\n]+
 ```
 
-**Qué reconoce:** uno o más caracteres consecutivos que sean coma, punto y coma, o salto de línea. No reconoce el contenido de cada skill en sí — solo marca dónde termina un ítem y empieza el siguiente. Esto es intencional: no le corresponde a esta etapa decidir si "JS" y "Javascript" son lo mismo, eso lo resuelve el transductor en la siguiente etapa.
+**What it recognizes:** one or more consecutive characters that are a comma, semicolon, or newline. It does not recognize the content of each skill in itself — it only marks where one item ends and the next begins. This is intentional: it is not the responsibility of this stage to decide if "JS" and "Javascript" are the same, as that is resolved by the transducer in the next stage.
 
 ---
 
-### Período de experiencia
+### Experience period
 
 ```
 [0-9]{4}[- ]+([0-9]{4}|PRESENT|CURRENT)
 ```
 
-**Qué reconoce:** un año de 4 dígitos, seguido de un guión o espacio, seguido de otro año de 4 dígitos o la palabra "PRESENT" o "CURRENT" (sin distinguir mayúsculas/minúsculas). Cubre formatos como "2021-2023" o "2021 Present".
+**What it recognizes:** a year of 4 digits, followed by a dash or space, followed by another year of 4 digits or the word "PRESENT" or "CURRENT" (without distinguishing between uppercase and lowercase). Covers formats like "2021-2023" or "2021 Present".
 
 ---
 
-### Línea de viñeta (bullets de experiencia)
+### Experience bullets
 
 ```
 ^[-*] [A-Za-z].+$
 ```
 
-**Qué reconoce:** una línea que empieza con un guión o un asterisco, seguido de un espacio y luego una letra, hasta el final de la línea. El contenido que sigue se captura tal cual, sin reescritura, según lo que acordamos.
+**What it recognizes:** a line that starts with a dash or an asterisk, followed by a space and then a letter, until the end of the line. The content that follows is captured as-is, without rewriting, according to what we agreed upon.
+
+
+---
+
+## Contract with Stage 2
+
+This section defines what Stage 1 (`extract`) requires from its input and what it guarantees in `ExtractedData`. Stage 2 and later stages may rely on these guarantees and nothing else.
+
+### Input
+
+- `resume_text` is plain text (UTF-8). PDF and DOCX files are out of scope.
+- `extract` removes a leading BOM and converts `\r\n` and `\r` to `\n` as its first step, before applying any expression.
+- The résumé is semi-structured: each section is introduced by a recognized header (see the header list above). A header may appear alone on its line (`Technical Skills:`) or followed by content on the same line (`Technical Skills: JS, React.js`). Both layouts appear in the assignment examples.
+- Content outside a recognized section is never searched for qualifications.
+
+### Output: `ExtractedData`
+
+| Field | Guarantee | When not found |
+|---|---|---|
+| `name` | First line of the document that matches the name pattern | `""` |
+| `contact` | Each field holds the matched text, unmodified | The field is `None` (never an empty string) |
+| `summary` | Literal text between the name and the first recognized header, without contact lines | `""` |
+| `skills_raw` | Tokens from the skills section (see below) | `[]` |
+| `education` | One entry per non-empty line of the education section, list markers removed, literal text | `[]` |
+| `experience` | One entry per block, in order of appearance; `bullets` are literal text with the marker removed | `[]`. Inside an entry, `organization` and `period` are `""` if not found |
+
+Stage 1 never raises an error because of missing information: absence is always represented by an empty value.
+
+### Guarantees on each token of `skills_raw`
+
+1. The token is not empty.
+2. It has no leading or trailing whitespace.
+3. It has no list marker (`-`, `*`, `•`) at the start and no sentence-final punctuation (`.`, `;`, `:`) at the end. Characters that can belong to a technology name (`.`, `+`, `#`, `-`) are preserved inside the token, so `Node.js`, `C++` and `C#` are not altered.
+4. Upper and lower case are preserved exactly as written.
+5. Tokens appear in the order of the résumé, and repeated tokens are kept.
+6. Tokens are separated only at commas, semicolons, and line breaks.
+
+### Reference examples (used as contract tests)
+
+1. Header and content on the same line:
+   `Technical Skills: JS, React.js, NodeJS, Postgres, Git.` gives `["JS", "React.js", "NodeJS", "Postgres", "Git"]`.
+2. Header alone on its line, content on the following line: same result.
+3. Résumé without a skills header: `skills_raw == []`, no error.
+4. Input with `\r\n` line endings: same result as with `\n`.
+
