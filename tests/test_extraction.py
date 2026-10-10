@@ -219,6 +219,16 @@ def test_summary_starts_after_name_and_ends_before_first_section():
     assert result.education == ["BSc Computer Science"]
 
 
+def test_summary_excludes_text_before_name():
+    result = extract(
+        "Introductory note before the résumé.\nJane Doe\njane@example.com\n"
+        "Backend engineer\nSKILLS:\nPython"
+    )
+
+    assert result.name == "Jane Doe"
+    assert result.summary == "Backend engineer"
+
+
 def test_phone_preserves_documented_parentheses():
     result = extract("Jane Doe\n(604) 555-1234")
 

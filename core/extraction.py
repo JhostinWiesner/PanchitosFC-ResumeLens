@@ -178,14 +178,31 @@ def _is_contact_line(line: str) -> bool:
 
 
 def _extract_summary(text: str, name: str) -> str:
-    """Capture free text before the first section, excluding name/contact lines."""
+    """Capture free text after the name and before the first section."""
     header = text[:_first_section_start(text)]
+    lines = header.splitlines()
+    name_line_index = None
+    for index, line in enumerate(lines[:5]):
+        candidate = line.strip()
+        if not candidate:
+            continue
+        if EMAIL.search(candidate) or PHONE.search(candidate):
+            continue
+        if LINKEDIN.search(candidate) or GITHUB.search(candidate):
+            continue
+        if NAME.fullmatch(candidate) and _clean_edge_punctuation(candidate) == name:
+            name_line_index = index
+            break
+
+    if not name or name_line_index is None:
+        return ""
+
     kept: list[str] = []
 
-    for line in header.splitlines():
+    for line in lines[name_line_index + 1:]:
         candidate = line.strip()
-        if not candidate or (name and candidate == name):
-            if not candidate and kept and kept[-1] != "":
+        if not candidate:
+            if kept and kept[-1] != "":
                 kept.append("")
             continue
         if _is_contact_line(candidate):
