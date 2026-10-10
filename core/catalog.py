@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from text import normalize_text
+from core.text import normalize_text
 
 import json
 import re
