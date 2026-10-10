@@ -10,16 +10,17 @@ The goal is to deliver a consistent list of canonical qualifications that can be
 
 ## 2. Location within the Pipeline
 
-The processing flow is organized as follows:
+The ResumeLens pipeline is organized into the following stages:
 
-1. **Stage 1 — Extraction:** obtains information from the resume and extracts technical qualification candidates.
-2. **Stage 2 — Normalization:** uses a finite-state transducer (FST) to convert recognized variants and aliases into canonical names.
-3. **Canonical Ordering by Profile:** removes duplicates, filters qualifications according to the chosen profile, and organizes technologies by category.
-4. **Stage 3 — Recognition:** uses automata to recognize sequences of qualifications corresponding to the profile.
-5. **Stage 4 — Grammar:** processes the recognized structure using the grammar defined for the system.
+1. **Stage 1 — Regex Extraction:** extracts candidate information from the résumé text and produces an `ExtractedData` object.
+2. **Stage 2 — FST Normalization:** converts recognized qualification variants and aliases into canonical names, preserving unrecognized terms.
+3. **Canonical Ordering by Profile:** removes duplicate canonical qualifications, filters qualifications according to the selected profile, and sorts them deterministically.
+4. **Stage 3 — Automata Recognition:** uses the generic automaton and the selected profile configuration to determine whether the ordered qualification sequence is accepted.
+5. **Stage 4 — Grammar:** processes the structure according to the grammar defined for the system.
 
-Ordering is an independent responsibility from normalization. Stage 2 recognizes technologies without depending on the selected profile, while this stage determines which ones are kept for subsequent processing.
+Each stage has a separate responsibility and communicates with the others through defined data structures.
 
+Stage 1 does not normalize or classify qualifications. Stage 2 does not filter by profile. Canonical ordering does not implement the recognition automaton.
 ## 3. Input and Output
 
 ### Input
