@@ -42,7 +42,7 @@ Character sets used throughout:
 ### 1. Section headings — `ANY_SECTION_HEADER`
 
 ```
-(?im)^[ \t]*(?:<skills>|<experience>|<education>)[ \t]*:?[ \t]*$
+(?im)^[ \t]*(?P<header>(?:(?:technical\s+skills|skills|technologies|tech\s+stack)|(?:professional\s+experience|work\s+experience|experience|employment)|(?:academic\s+background|academic\s+qualifications|education)))[ \t]*(?::[ \t]*(?P<inline>[^\r\n]*?)[ \t]*)?$
 ```
 
 where the three alternatives are, with `\s+` between the words of multi-word headings:
@@ -53,7 +53,7 @@ experience:  professional\s+experience | work\s+experience | experience | employ
 education:   academic\s+background | academic\s+qualifications | education
 ```
 
-**Natural language.** A **complete line** that contains only a known section name, optionally indented, optionally followed by a colon, with nothing else. Case is ignored. The anchors (`^`, `$`, with `(?m)`) make the match cover the whole line, so the word "experience" inside a sentence never opens a section. Multi-word headings accept any run of whitespace between the words.
+**Natural language.** A line starts with a known section name, optionally indented and optionally followed by a colon and content on the same line. Inline content is recognized only after a colon. Case is ignored. The anchors (`^`, `$`, with `(?m)`) require the heading at the start of a line. Multi-word headings accept whitespace between words.
 
 **Set notation.**
 
@@ -62,7 +62,7 @@ Sk = ⟨technical⟩·WS⁺·⟨skills⟩ ∪ ⟨skills⟩ ∪ ⟨technologies�
 Ex = ⟨professional⟩·WS⁺·⟨experience⟩ ∪ ⟨work⟩·WS⁺·⟨experience⟩ ∪ ⟨experience⟩ ∪ ⟨employment⟩
 Ed = ⟨academic⟩·WS⁺·⟨background⟩ ∪ ⟨academic⟩·WS⁺·⟨qualifications⟩ ∪ ⟨education⟩
 
-L(heading line) = Hsp∗ · (Sk ∪ Ex ∪ Ed) · Hsp∗ · ({:} ∪ {λ}) · Hsp∗
+L(heading line) = Hsp∗ · (Sk ∪ Ex ∪ Ed) · Hsp∗ · ({λ} ∪ {:} · Hsp∗ · X∗) · Hsp∗
 ```
 
 The type of a section is decided by `SECTION_HEADER_PATTERNS`, which applies `(?i)^(?:…)$` to the heading once the colon is removed: its three languages are exactly `Sk`, `Ex` and `Ed`. A section's content runs from the end of its heading to the start of the next recognized heading (or the end of the text).
@@ -71,9 +71,9 @@ The type of a section is decided by `SECTION_HEADER_PATTERNS`, which applies `(?
 |---|---|
 | `Technical Skills:` | `Skills and tools` (extra words) |
 | `  EXPERIENCE  ` | `My experience is broad` (heading inside a sentence) |
-| `Tech   Stack` | `Skills: JS, Git` (content on the same line) |
+| `Skills: JS, Git` | `Skills and tools` (extra words) |
 
-**Limitations.** A heading followed by content on the same line (`Skills: JS, Git`) is **not** detected, because the expression requires the line to end after the optional colon. Since `\s+` also matches line breaks, a heading split across two lines (`Technical⏎Skills`) is accepted.
+**Limitations.** Inline content must follow a colon. Since `\s+` also matches line breaks, a heading split across two lines (`Technical⏎Skills`) is accepted.
 
 ---
 
@@ -84,16 +84,6 @@ The type of a section is decided by `SECTION_HEADER_PATTERNS`, which applies `(?
 ```
 
 **Natural language.** A line made of **two to four words** separated by blanks. Each word starts with an uppercase letter (accented capitals included) followed by any number of letters, apostrophes, dots or hyphens. The code applies it with `fullmatch` to one stripped line, and only to the first five lines before the first section heading, skipping lines that contain an email, phone, LinkedIn or GitHub address.
-
-**Set notation.**
-
-```
-Up  = {A, …, Z} ∪ {À, …, Ö} ∪ {Ø, …, Þ}
-N   = {A, …, Z} ∪ {a, …, z} ∪ {À, …, Ö} ∪ {Ø, …, ö} ∪ {ø, …, ÿ} ∪ {', ’, ., -}
-Wd  = Up · N∗
-
-L(NAME) = Wd · (Hsp⁺ · Wd)¹ ∪ Wd · (Hsp⁺ · Wd)² ∪ Wd · (Hsp⁺ · Wd)³
-```
 
 | Accepted | Rejected |
 |---|---|
@@ -245,16 +235,6 @@ L(line) = Hsp∗ · Lab · Hsp∗ · {:} · Hsp∗ · X⁺ · Hsp∗
 
 **Natural language.** A line made of **two capitalized places separated by a comma**, such as a city and a country. Each place starts with an uppercase letter and continues with letters, dots, apostrophes, hyphens or spaces. The code applies it with `fullmatch` to each stripped line, and **only in the header area** (before the first section heading), and only when no labeled location was found.
 
-**Set notation.**
-
-```
-Up = {A, …, Z} ∪ {À, …, Ö} ∪ {Ø, …, Þ}
-P  = {A, …, Z} ∪ {a, …, z} ∪ {À, …, Ö} ∪ {Ø, …, ö} ∪ {ø, …, ÿ} ∪ {., ', ’, space, -}
-Pl = Up · P∗
-
-L(LOCATION_INLINE) = Hsp∗ · Pl · WS∗ · {,} · WS∗ · Pl · Hsp∗
-```
-
 | Accepted | Rejected |
 |---|---|
 | `Cali, Colombia` | `cali, colombia` (lowercase initials) |
@@ -388,12 +368,12 @@ This section defines what Stage 1 (`extract`) requires from its input and what i
 
 | Field | Guarantee | When not found |
 |---|---|---|
-| `name` | First line of the document that matches the name pattern | `""` |
-| `contact` | Each field holds the matched text, unmodified | The field is `None` (never an empty string) |
-| `summary` | Literal text between the name and the first recognized header, without contact lines | `""` |
+| `name` | First matching line among the first five lines before the first section header; contact lines are skipped | `""` |
+| `contact` | Email and location have edge punctuation trimmed; phone is returned as matched; LinkedIn and GitHub have trailing punctuation removed | The field is `None` (never an empty string) |
+| `summary` | Non-contact lines after the detected name and before the first recognized header; line edges are trimmed and repeated blank lines are collapsed | `""` if no name is found or no summary text remains |
 | `skills_raw` | Tokens from the skills section (see below) | `[]` |
 | `education` | One entry per non-empty line of the education section, list markers removed, literal text | `[]` |
-| `experience` | One entry per block, in order of appearance; `bullets` are literal text with the marker removed | `[]`. Inside an entry, `organization` and `period` are `""` if not found |
+| `experience` | Entries are grouped around recognized date-range lines; if no dated entries can be formed, non-empty blank-line-separated blocks are used. Order is preserved; bullet markers are removed | `[]`. Inside an entry, `organization` and `period` are `""` if not found |
 
 Stage 1 never raises an error because of missing information: absence is always represented by an empty value.
 
@@ -401,7 +381,7 @@ Stage 1 never raises an error because of missing information: absence is always 
 
 1. The token is not empty.
 2. It has no leading or trailing whitespace.
-3. It has no list marker (`-`, `*`, `•`) at the start and no sentence-final punctuation (`.`, `;`, `:`) at the end. Characters that can belong to a technology name (`.`, `+`, `#`, `-`) are preserved inside the token, so `Node.js`, `C++` and `C#` are not altered.
+3. Supported leading list markers (`-`, `*`, `•`) and configured edge punctuation are removed. Internal punctuation is preserved, including in `Node.js`, `C++` and `C#`.
 4. Upper and lower case are preserved exactly as written.
 5. Tokens appear in the order of the résumé, and repeated tokens are kept.
 6. Tokens are separated only at commas, semicolons, and line breaks.
