@@ -37,9 +37,11 @@ def test_loads_real_catalog(catalog):
     assert "KUBERNETES" in catalog
 
 
+
 def test_every_canonical_resolves_to_itself(catalog):
+    spellings = catalog.spellings()
     for q in catalog:
-        assert catalog.normalize(q.canonical) == q.canonical
+        assert spellings[normalize_text(q.canonical)] == q.canonical
 
 
 # ---- aliases y variantes (opción A) ------------------------------------
@@ -52,7 +54,7 @@ def test_every_canonical_resolves_to_itself(catalog):
         ("  react.JS ", "REACT"),
         ("Postgres", "POSTGRESQL"),
         ("PostgreSQL", "POSTGRESQL"),
-        ("Python", "PYTHON"),  # variante del canónico, no está en aliases
+        ("Python", "PYTHON"),
         ("Docker", "DOCKER"),
         ("node js", "NODE_JS"),
         ("Scikit-Learn", "SCIKIT_LEARN"),
@@ -63,13 +65,16 @@ def test_every_canonical_resolves_to_itself(catalog):
         ("gIt", "GIT"),
     ],
 )
-def test_normalize_known_texts(catalog, raw, expected):
-    assert catalog.normalize(raw) == expected
 
+
+def test_normalize_known_texts(catalog, raw, expected):
+    spellings = catalog.spellings()
+    assert spellings[normalize_text(raw)] == expected
 
 @pytest.mark.parametrize("raw", ["Fortran", "", "   ", "react native"])
 def test_normalize_unknown_returns_none(catalog, raw):
-    assert catalog.normalize(raw) is None
+    spellings = catalog.spellings()
+    assert spellings.get(normalize_text(raw)) is None
 
 
 def test_name_variants():
@@ -109,14 +114,17 @@ def test_unknown_canonical_raises(catalog):
         catalog.category_of("COBOL")
 
 
-def test_terms_longest_first(catalog):
-    terms = catalog.terms_longest_first()
-    assert terms == sorted(terms, key=lambda t: (-len(t), t))
-    assert terms.index("google cloud platform") < terms.index("google cloud")
+def test_spellings_handle_prefixes(catalog):
+    spellings = catalog.spellings()
+
+    assert spellings["git"] == "GIT"
+    assert spellings["github actions"] == "GITHUB_ACTIONS"
+    assert spellings["google cloud"] == "GCP"
+    assert spellings["google cloud platform"] == "GCP"
 
 
-def test_surface_forms_cover_aliases(catalog):
-    forms = catalog.surface_forms()
+def test_spellings_cover_aliases(catalog):
+    forms = catalog.spellings()
     assert forms["js"] == "JAVASCRIPT"
     assert forms["amazon web services"] == "AWS"
 
