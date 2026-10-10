@@ -10,86 +10,366 @@ This two-level separation is what allows the extractor to handle resumes with se
 
 ## Definitions of Regular Expressions
 
-### Level 1 — Section Heading
+This section documents the expressions that `core/extraction.py` actually executes. Each one is described in natural language and with the set notation used in the course: the regular operations **union** `∪`, **concatenation** `·` and **Kleene closure** `∗`, over an alphabet `Σ`, with `λ` as the empty string.
 
-```
-^(TECHNICAL SKILLS|SKILLS|TECHNOLOGIES|TECH STACK|EXPERIENCE|WORK EXPERIENCE|PROFESSIONAL EXPERIENCE|EMPLOYMENT|EDUCATION|ACADEMIC BACKGROUND|ACADEMIC QUALIFICATIONS):?$
-```
+Every example below was checked against the implementation.
 
-(applied case-insensitively, and anchored to the beginning and end of the line)
+### Notation and conventions
 
-**What it recognizes:** a complete line that is exactly one of the known section names, with an optional colon at the end. The `|` symbol indicates a choice between several possible words or phrases—that is, the line must match one (and only one) of those complete options, not just a part of it. The circumflex accent at the beginning and the dollar sign at the end ensure that the match covers the entire line, so as not to confuse, for example, the word “Experience” if it appears within a paragraph of free-form text.
+| Symbol | Meaning |
+|---|---|
+| `Σ` | The alphabet: all Unicode characters |
+| `λ` | The empty string; `{λ}` is the language that contains only it |
+| `Xⁿ` | `X` concatenated with itself `n` times; `X⁺ = X · X∗` (one or more) |
+| `X ∪ {λ}` | Python's `X?` (optional) |
+| `X³ ∪ X⁴` | Python's `X{3,4}` (between three and four repetitions) |
+| `⟨text⟩` | A literal written in lowercase whose letters may appear in either case, i.e. each letter `c` stands for `{c, C}`. Used where the expression is compiled with `re.IGNORECASE` / `(?i)` |
 
----
+Character sets used throughout:
 
-### Candidate's Name
+| Name | Definition |
+|---|---|
+| `D` | Decimal digits `{0, …, 9}` (Python's `\d` also admits other Unicode decimal digits) |
+| `Word` | Letters, digits and `_` (Python's `\w`) |
+| `Hsp` | Horizontal blanks `{space, tab}` |
+| `WS` | All whitespace characters, including line breaks (Python's `\s`) |
+| `X` | Any character except a line break (Python's `.`) |
 
-```
-^[A-Z][a-z]+( [A-Z][a-z]+){1,3}$
-```
-
-**What it matches:** a line consisting of 2 to 4 words, each beginning with an uppercase letter from A to Z followed by one or more lowercase letters from a to z, separated by a single space. This applies only to the first lines of the document, before any section headers, because the same pattern of “words with an initial capital letter” also appears later in organization names.
-
----
-
-### Email
-
-```
-[A-Za-z0-9.]+@[A-Za-z0-9]+\.[A-Za-z]{2,}
-```
-
-**What it recognizes:** a sequence of letters, digits, or dots, followed by the `@` symbol, followed by another sequence of letters or digits, followed by a dot, and ending with at least two letters. This is a simplified version of the official email regex, which is much more complex; it is sufficient for the purpose of extracting candidate emails from resumes.
+**What "the language of an expression" means.** For an expression `r`, `L(r)` is the set of strings that `r` matches **in full**. When the code uses `search` to find a match inside a larger text, the strings it can find are those of `Σ∗ · L(r) · Σ∗`. The anchors `^` and `$`, look-arounds and capture groups are not part of the formal language: they are explained in natural language where they appear.
 
 ---
 
-### Phone number
+### 1. Section headings — `ANY_SECTION_HEADER`
 
 ```
-[0-9]{2,4}[- ]?[0-9]{3,4}[- ]?[0-9]{3,4}
+(?im)^[ \t]*(?:<skills>|<experience>|<education>)[ \t]*:?[ \t]*$
 ```
 
-**What it recognizes:** groups of 2 to 4 digits, then 3 to 4 digits, then 3 to 4 digits, each group separated optionally by a space or a dash. This covers different regional formats of phone numbers without requiring one exact format, since the statement does not specify a single format.
+where the three alternatives are, with `\s+` between the words of multi-word headings:
+
+```
+skills:      technical\s+skills | skills | technologies | tech\s+stack
+experience:  professional\s+experience | work\s+experience | experience | employment
+education:   academic\s+background | academic\s+qualifications | education
+```
+
+**Natural language.** A **complete line** that contains only a known section name, optionally indented, optionally followed by a colon, with nothing else. Case is ignored. The anchors (`^`, `$`, with `(?m)`) make the match cover the whole line, so the word "experience" inside a sentence never opens a section. Multi-word headings accept any run of whitespace between the words.
+
+**Set notation.**
+
+```
+Sk = ⟨technical⟩·WS⁺·⟨skills⟩ ∪ ⟨skills⟩ ∪ ⟨technologies⟩ ∪ ⟨tech⟩·WS⁺·⟨stack⟩
+Ex = ⟨professional⟩·WS⁺·⟨experience⟩ ∪ ⟨work⟩·WS⁺·⟨experience⟩ ∪ ⟨experience⟩ ∪ ⟨employment⟩
+Ed = ⟨academic⟩·WS⁺·⟨background⟩ ∪ ⟨academic⟩·WS⁺·⟨qualifications⟩ ∪ ⟨education⟩
+
+L(heading line) = Hsp∗ · (Sk ∪ Ex ∪ Ed) · Hsp∗ · ({:} ∪ {λ}) · Hsp∗
+```
+
+The type of a section is decided by `SECTION_HEADER_PATTERNS`, which applies `(?i)^(?:…)$` to the heading once the colon is removed: its three languages are exactly `Sk`, `Ex` and `Ed`. A section's content runs from the end of its heading to the start of the next recognized heading (or the end of the text).
+
+| Accepted | Rejected |
+|---|---|
+| `Technical Skills:` | `Skills and tools` (extra words) |
+| `  EXPERIENCE  ` | `My experience is broad` (heading inside a sentence) |
+| `Tech   Stack` | `Skills: JS, Git` (content on the same line) |
+
+**Limitations.** A heading followed by content on the same line (`Skills: JS, Git`) is **not** detected, because the expression requires the line to end after the optional colon. Since `\s+` also matches line breaks, a heading split across two lines (`Technical⏎Skills`) is accepted.
 
 ---
 
-### Location (LinkedIn/GitHub)
+### 2. Candidate name — `NAME`
 
 ```
-LINKEDIN.COM/IN/[A-Za-z0-9-]+
+^[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]*(?:[ \t]+[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]*){1,3}$
 ```
 
-**What it recognizes:** the literal text "linkedin.com/in/" (regardless of case) followed by one or more letters, digits, or hyphens, which corresponds to the username.
+**Natural language.** A line made of **two to four words** separated by blanks. Each word starts with an uppercase letter (accented capitals included) followed by any number of letters, apostrophes, dots or hyphens. The code applies it with `fullmatch` to one stripped line, and only to the first five lines before the first section heading, skipping lines that contain an email, phone, LinkedIn or GitHub address.
+
+**Set notation.**
+
+```
+Up  = {A, …, Z} ∪ {À, …, Ö} ∪ {Ø, …, Þ}
+N   = {A, …, Z} ∪ {a, …, z} ∪ {À, …, Ö} ∪ {Ø, …, ö} ∪ {ø, …, ÿ} ∪ {', ’, ., -}
+Wd  = Up · N∗
+
+L(NAME) = Wd · (Hsp⁺ · Wd)¹ ∪ Wd · (Hsp⁺ · Wd)² ∪ Wd · (Hsp⁺ · Wd)³
+```
+
+| Accepted | Rejected |
+|---|---|
+| `Wednesday Addams` | `Wednesday` (one word) |
+| `Ana María O'Brien-Pérez` | `wednesday addams` (lowercase initial) |
+| `Jean-Luc Picard` | `Ana de la Cruz` (lowercase particles) |
+
+**Limitations.** Lowercase particles (`de`, `la`, `van`) break the pattern. Any capitalized two-to-four-word line has the same form, so `Technical Skills` would also match; that is why the search is restricted to the header area.
 
 ---
 
-### Skills separator (within the skills section already isolated at Level 1)
+### 3. Email — `EMAIL`
+
+```
+[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?(?:\.[A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?)+     (re.IGNORECASE)
+```
+
+**Natural language.** A local part of one or more allowed characters (letters, digits and the symbols `. ! # $ % & ' * + / = ? ^ _ ` { | } ~ -`), an `@`, and a domain of **two or more labels** separated by dots. Each label starts and ends with a letter or digit and may contain hyphens in between. The code takes the first match found in the text.
+
+**Set notation.**
+
+```
+A    = {a, …, z} ∪ {A, …, Z} ∪ {0, …, 9}
+Loc  = A ∪ {., !, #, $, %, &, ', *, +, /, =, ?, ^, _, `, {, |, }, ~, -}
+Lab  = A · ((A ∪ {-})∗ · A ∪ {λ})
+          (a label: starts and ends with an alphanumeric character)
+
+L(EMAIL) = Loc⁺ · {@} · Lab · ({.} · Lab)⁺
+```
+
+| Accepted | Rejected |
+|---|---|
+| `ana.ruiz@mail.co` | `ana@localhost` (domain has one label) |
+| `a+b@sub.example.org` | `ana@-bad.com` (label starts with a hyphen) |
+| `a@b.co.uk` | `@x.com` (empty local part) |
+
+**Limitations.** It is a simplified version of the full email grammar: it does not check lengths, quoted local parts or international domain names. It accepts a one-letter last label (`ana@x.c`). Accented characters are not in `Loc`.
+
+---
+
+### 4. Phone number — `PHONE`
+
+```
+(?<!\w)(?:\+?\d{1,3}[ .()-]?)?(?:\(?\d{2,4}\)?[ .-]?)\d{3,4}[ .-]?\d{3,4}(?!\w)
+```
+
+**Natural language.** An optional country code (an optional `+`, one to three digits and an optional separator), then an area code (two to four digits, optionally in parentheses, with an optional separator), then two blocks of three or four digits optionally separated by a blank, dot or hyphen. The look-arounds `(?<!\w)` and `(?!\w)` require that the number is **not glued to a letter or digit** on either side. A candidate is then accepted by `_find_phone` only if it has 7 to 15 digits and is not a year range.
+
+**Set notation.**
+
+```
+S1 = {space, ., (, ), -}          S2 = {space, ., -}
+
+CC   = ({+} ∪ {λ}) · (D ∪ D² ∪ D³) · (S1 ∪ {λ})            (country code)
+AREA = ({(} ∪ {λ}) · (D² ∪ D³ ∪ D⁴) · ({)} ∪ {λ}) · (S2 ∪ {λ})
+BLK  = D³ ∪ D⁴
+
+L(PHONE) = (CC ∪ {λ}) · AREA · BLK · (S2 ∪ {λ}) · BLK
+           with the context condition: the match is neither preceded nor followed by a character of Word
+```
+
+With these limits, the shortest string has 8 digits and the longest has 15.
+
+| Accepted | Rejected |
+|---|---|
+| `+57 300 123 4567` | `555-1234` (too few digits) |
+| `(604) 555-1234` | `2021-2023` (a year range, not a number) |
+| `3001234567` | `ref12345678901` (glued to letters) |
+
+**Limitations.** It does not validate that a country or area code exists, so any digit sequence with the right shape is a candidate.
+
+---
+
+### 5. LinkedIn profile — `LINKEDIN`
+
+```
+(?:https?://)?(?:www\.)?linkedin\.com/in/[\w-]+     (re.IGNORECASE)
+```
+
+**Natural language.** An optional `http://` or `https://`, an optional `www.`, the fixed text `linkedin.com/in/`, and a username of one or more letters, digits, underscores or hyphens. Case is ignored. Trailing punctuation that is not part of the username is removed afterwards by the code.
+
+**Set notation.**
+
+```
+H = {http://, https://} ∪ {λ}          W = {www.} ∪ {λ}          U = Word ∪ {-}
+
+L(LINKEDIN) = H · W · ⟨linkedin.com/in/⟩ · U⁺
+```
+
+| Accepted | Rejected |
+|---|---|
+| `linkedin.com/in/ana-ruiz` | `linkedin.com/in/` (empty username) |
+| `HTTPS://www.LinkedIn.com/in/x_1` | `linkedin.com/company/acme` (not a personal profile) |
+
+---
+
+### 6. GitHub profile — `GITHUB`
+
+```
+(?:https?://)?(?:www\.)?github\.com/[\w-]+     (re.IGNORECASE)
+```
+
+**Natural language.** Same structure as the LinkedIn expression, but with the fixed text `github.com/` followed by a username of letters, digits, underscores or hyphens.
+
+**Set notation.**
+
+```
+L(GITHUB) = H · W · ⟨github.com/⟩ · U⁺          (H, W and U as in section 5)
+```
+
+| Accepted | Rejected |
+|---|---|
+| `github.com/ana-ruiz` | `github.com/` (empty username) |
+| `https://github.com/anaruiz` | `gitlab.com/ana` (different site) |
+
+**Limitations.** For a repository URL such as `github.com/anaruiz/project`, the match stops at the username, so only `github.com/anaruiz` is kept.
+
+---
+
+### 7. Labeled location — `LOCATION_LABELED`
+
+```
+(?im)^[ \t]*(?:location|based[ \t]+in|address)[ \t]*:[ \t]*(.+?)[ \t]*$
+```
+
+**Natural language.** A line that starts with the label `Location`, `Based in` or `Address`, followed by a colon and a **non-empty value** up to the end of the line. Case is ignored. The capture group holds the value, trimmed of trailing blanks (the non-greedy `.+?` followed by `[ \t]*$` is what trims them). It is searched in the whole text.
+
+**Set notation.**
+
+```
+Lab = ⟨location⟩ ∪ ⟨based⟩ · Hsp⁺ · ⟨in⟩ ∪ ⟨address⟩
+
+L(line) = Hsp∗ · Lab · Hsp∗ · {:} · Hsp∗ · X⁺ · Hsp∗
+```
+
+| Accepted | Rejected |
+|---|---|
+| `Location: Cali, Colombia` | `Location Cali` (no colon) |
+| `Based in : Medellín` | `Location:` (empty value) |
+| `BASED   IN: Lima` | `City: Cali` (label not recognized) |
+
+---
+
+### 8. Unlabeled location — `LOCATION_INLINE`
+
+```
+^[ \t]*([A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ.'’ -]*?)\s*,\s*([A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ.'’ -]*?)[ \t]*$
+```
+
+**Natural language.** A line made of **two capitalized places separated by a comma**, such as a city and a country. Each place starts with an uppercase letter and continues with letters, dots, apostrophes, hyphens or spaces. The code applies it with `fullmatch` to each stripped line, and **only in the header area** (before the first section heading), and only when no labeled location was found.
+
+**Set notation.**
+
+```
+Up = {A, …, Z} ∪ {À, …, Ö} ∪ {Ø, …, Þ}
+P  = {A, …, Z} ∪ {a, …, z} ∪ {À, …, Ö} ∪ {Ø, …, ö} ∪ {ø, …, ÿ} ∪ {., ', ’, space, -}
+Pl = Up · P∗
+
+L(LOCATION_INLINE) = Hsp∗ · Pl · WS∗ · {,} · WS∗ · Pl · Hsp∗
+```
+
+| Accepted | Rejected |
+|---|---|
+| `Cali, Colombia` | `cali, colombia` (lowercase initials) |
+| `San José, Costa Rica` | `Cali` (no comma) |
+| `Bogotá, D.C.` | `Cali, Colombia, South America` (three parts) |
+
+**Limitations.** The pattern cannot tell a place from any other capitalized pair: `Python, Java` also matches. That is why it is restricted to the header area and never run over the skills or education sections.
+
+---
+
+### 9. Skills separator — `SKILL_DELIMITER`
 
 ```
 [,;\n]+
 ```
 
-**What it recognizes:** one or more consecutive characters that are a comma, semicolon, or newline. It does not recognize the content of each skill in itself — it only marks where one item ends and the next begins. This is intentional: it is not the responsibility of this stage to decide if "JS" and "Javascript" are the same, as that is resolved by the transducer in the next stage.
+**Natural language.** One or more consecutive commas, semicolons or line breaks. It only marks where one skill ends and the next begins; it does not recognize the content of a skill. Deciding that `JS` and `Javascript` are the same technology is the job of the transducer in Stage 2.
+
+**Set notation.**
+
+```
+Sep = {',', ';', '\n'}
+
+L(SKILL_DELIMITER) = Sep⁺
+```
+
+The code uses it with `split`, so the pieces between delimiters become the raw tokens of `skills_raw`, trimmed of boundary punctuation.
+
+| Accepted | Rejected |
+|---|---|
+| `,` | the empty string (needs at least one separator) |
+| `;⏎,` | `, ` (the space is not a separator; it stays in the token and is trimmed afterwards) |
 
 ---
 
-### Experience period
+### 10. Experience period — `PERIOD`
 
 ```
-[0-9]{4}[- ]+([0-9]{4}|PRESENT|CURRENT)
+(?i)(?<!\d)(?:19|20)\d{2}[ \t]*(?:[-–—]|\bto\b)[ \t]*(?:(?:19|20)\d{2}|present\b|current\b)(?!\w)
 ```
 
-**What it recognizes:** a year of 4 digits, followed by a dash or space, followed by another year of 4 digits or the word "PRESENT" or "CURRENT" (without distinguishing between uppercase and lowercase). Covers formats like "2021-2023" or "2021 Present".
+**Natural language.** A four-digit year between 1900 and 2099, then a hyphen, en dash, em dash or the word `to` (with optional blanks around it), then either another year in the same range or the word `present` or `current`. Case is ignored. The look-arounds require that the range is not glued to another digit before it or to a letter or digit after it. Its matches are the anchors the extractor uses to split the experience section into entries.
+
+**Set notation.**
+
+```
+Y   = ({1}·{9} ∪ {2}·{0}) · D · D                      (years 1900–2099)
+Dash = {-, –, —} ∪ ⟨to⟩
+End  = Y ∪ ⟨present⟩ ∪ ⟨current⟩
+
+L(PERIOD) = Y · Hsp∗ · Dash · Hsp∗ · End
+            with the context condition: not preceded by a digit and not followed by a character of Word
+```
+
+| Accepted | Rejected |
+|---|---|
+| `2021-2023` | `2021` (a single year) |
+| `2019 – Present` | `2021 Present` (needs a dash or `to`) |
+| `2020 to current` | `Jan 2021 - Mar 2023` (months are not supported) |
+| `2021 - PRESENT` | `12021-2023` (preceded by a digit) |
+
+**Limitations.** Month-and-year ranges are not recognized. Years outside 1900–2099 do not match.
 
 ---
 
-### Experience bullets
+### 11. Organization and period line — `ORG_PERIOD_LINE`
 
 ```
-^[-*] [A-Za-z].+$
+^[ \t]*(?P<organization>[^|·]+?)[ \t]*[|·][ \t]*(?P<period>.+?)[ \t]*$
 ```
 
-**What it recognizes:** a line that starts with a dash or an asterisk, followed by a space and then a letter, until the end of the line. The content that follows is captured as-is, without rewriting, according to what we agreed upon.
+**Natural language.** A line with the form `Organization | something` or `Organization · something`. The first group is the organization: one or more characters that are neither `|` nor `·`. Then comes the separator `|` or `·`, and the second group is any non-empty text. The code applies it with `fullmatch` to one stripped line. It does not check that the second part is a date; `PERIOD` is used for that.
 
+**Set notation.**
+
+```
+Org = Σ ∖ {|, ·}                    (every character except the two separators)
+Sp  = {|, ·}
+
+L(ORG_PERIOD_LINE) = Hsp∗ · Org⁺ · Hsp∗ · Sp · Hsp∗ · X⁺ · Hsp∗
+```
+
+| Accepted | Rejected |
+|---|---|
+| `Acme Corp \| 2021-2023` | `Acme Corp 2021-2023` (no separator) |
+| `Globant · 2019 – Present` | `\| 2021` (empty organization) |
+| `A \| B \| 2020` | `Acme Corp \|` (nothing after the separator) |
+
+**Limitations.** Since the organization cannot contain a separator, only the first one splits the line. In `A | B | 2020`, the organization is `A` and the period group is `B | 2020`.
+
+---
+
+### 12. Experience bullet — `BULLET_LINE`
+
+```
+^[ \t]*[•●▪*\-][ \t]+(.+?)[ \t]*$
+```
+
+**Natural language.** A line that starts with a bullet marker (`•`, `●`, `▪`, `*` or `-`), at least one blank, and then the text of the bullet up to the end of the line. The capture group is the text without the marker and without trailing blanks, and it is kept as written, without rewriting. The code uses it with `fullmatch` on each stripped line of an experience entry.
+
+**Set notation.**
+
+```
+M = {•, ●, ▪, *, -}
+
+L(BULLET_LINE) = Hsp∗ · M · Hsp⁺ · X⁺ · Hsp∗
+```
+
+| Accepted | Rejected |
+|---|---|
+| `- Built REST APIs` | `-Built` (no blank after the marker) |
+| `  • Led a team` | `Built - REST` (does not start with a marker) |
+| `* Used Docker` | `- ` (no text after the marker) |
+
+**Limitations.** Other markers, such as the en dash `–`, are not recognized. A line that starts with `- ` and a number (for example `- 5% increase`) is treated as a bullet.
 
 ---
 

@@ -10,19 +10,30 @@ def catalog() -> Catalog:
     return Catalog.from_json()
 
 
-def entry(canonical="PYTHON", category="LANGUAGE", aliases=("py",)):
-    return {"canonical": canonical, "category": category, "aliases": list(aliases)}
+VALID_PROFILES = ["FULL_STACK", "ML_ENGINEER", "DEVOPS", "DATA_ENGINEER"]
+
+
+def entry(canonical="PYTHON", category="LANGUAGE", aliases=("py",), profiles=("ML_ENGINEER",)):
+    return {
+        "canonical": canonical,
+        "category": category,
+        "aliases": list(aliases),
+        "profiles": list(profiles),
+    }
 
 
 def write(tmp_path, qualifications):
     path = tmp_path / "catalog.json"
-    path.write_text(json.dumps({"qualifications": qualifications}), encoding="utf-8")
+    path.write_text(
+        json.dumps({"profiles": VALID_PROFILES, "qualifications": qualifications}),
+        encoding="utf-8",
+    )
     return path
 
 
 # ---- carga del catálogo real -------------------------------------------
 def test_loads_real_catalog(catalog):
-    assert len(catalog) == 38
+    assert len(catalog) == 39
     assert "KUBERNETES" in catalog
 
 
@@ -75,6 +86,17 @@ def test_category_and_position(catalog):
     assert catalog.category_of("GIT") == "VCS"
     assert catalog.position("DOCKER") < catalog.position("KUBERNETES")
     assert catalog.position("JAVASCRIPT") < catalog.position("TYPESCRIPT")
+    assert catalog.get("JAVA").profiles == ("FULL_STACK",)
+
+
+def test_qualifications_for_returns_file_order(catalog):
+    assert catalog.qualifications_for("FULL_STACK", "LANGUAGE") == (
+        "JAVASCRIPT",
+        "TYPESCRIPT",
+        "JAVA",
+        "PYTHON",
+    )
+    assert catalog.qualifications_for("DATA_ENGINEER", "LANGUAGE") == ("PYTHON",)
 
 
 def test_categories_in_first_appearance_order(catalog):
@@ -121,6 +143,26 @@ def test_rejects_bad_canonical_format(tmp_path):
 def test_rejects_missing_field(tmp_path):
     path = write(tmp_path, [{"canonical": "GIT", "category": "VCS"}])
     with pytest.raises(CatalogError, match="faltan campos"):
+        Catalog.from_json(path)
+
+
+def test_rejects_missing_profiles_field(tmp_path):
+    qualification = entry()
+    del qualification["profiles"]
+    path = write(tmp_path, [qualification])
+    with pytest.raises(CatalogError, match="faltan campos"):
+        Catalog.from_json(path)
+
+
+def test_rejects_duplicate_profiles(tmp_path):
+    path = write(tmp_path, [entry(profiles=("ML_ENGINEER", "ML_ENGINEER"))])
+    with pytest.raises(CatalogError, match="repetidos"):
+        Catalog.from_json(path)
+
+
+def test_rejects_unknown_profile(tmp_path):
+    path = write(tmp_path, [entry(profiles=("UNKNOWN",))])
+    with pytest.raises(CatalogError, match="no definidos"):
         Catalog.from_json(path)
 
 
