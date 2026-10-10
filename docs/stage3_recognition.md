@@ -12,7 +12,7 @@ A résumé satisfies the Full Stack Developer pattern when its ordered sequence 
 
 | Group | Category | Symbols (marked FS) |
 |---|---|---|
-| G1 | `LANGUAGE` | JAVASCRIPT, TYPESCRIPT |
+| G1 | `LANGUAGE` | JAVASCRIPT, TYPESCRIPT, JAVA, PYTHON |
 | G2 | `FRONTEND` | REACT, ANGULAR, VUE |
 | G3 | `BACKEND` | NODE_JS, DJANGO, SPRING_BOOT, REST_API |
 | G4 | `DATABASE` | SQL, POSTGRESQL, MONGODB |
@@ -29,7 +29,7 @@ $M_{FS} = (Q, \Sigma, \delta, q_0, F)$
   - $q_3$: a backend technology found (G3)
   - $q_4$: a database found (G4)
   - $q_5$: version control found (G5), all requirements met
-- $\Sigma = G1 \cup G2 \cup G3 \cup G4 \cup G5$ (13 symbols: JAVASCRIPT, TYPESCRIPT, REACT, ANGULAR, VUE, NODE_JS, DJANGO, SPRING_BOOT, REST_API, SQL, POSTGRESQL, MONGODB, GIT)
+- $\Sigma = G1 \cup G2 \cup G3 \cup G4 \cup G5$ (15 symbols: JAVASCRIPT, TYPESCRIPT, JAVA, PYTHON, REACT, ANGULAR, VUE, NODE_JS, DJANGO, SPRING_BOOT, REST_API, SQL, POSTGRESQL, MONGODB, GIT)
 - $\delta$, for $i = 1, 2, 3, 4, 5$ and every a in $G_i$:
   - advance: $\delta(q(i-1), a) = q_i$
   - stay: $\delta(q_i, a) = q_i$ (another alternative of the same group)
@@ -59,8 +59,8 @@ Each arrow stands for one transition per listed symbol. Missing transitions lead
 ```mermaid
 flowchart LR
     start(( )) --> q0((q0))
-    q0 -->|"JAVASCRIPT<br/>TYPESCRIPT"| q1((q1))
-    q1 -->|"JAVASCRIPT<br/>TYPESCRIPT"| q1
+    q0 -->|"JAVASCRIPT<br/>TYPESCRIPT<br/>JAVA<br/>PYTHON"| q1((q1))
+    q1 -->|"JAVASCRIPT<br/>TYPESCRIPT<br/>JAVA<br/>PYTHON"| q1
     q1 -->|"REACT<br/>ANGULAR<br/>VUE"| q2((q2))
     q2 -->|"REACT<br/>ANGULAR<br/>VUE"| q2
     q2 -->|"NODE_JS<br/>DJANGO<br/>SPRING_BOOT<br/>REST_API"| q3((q3))
