@@ -13,12 +13,14 @@ Curious software developer with a passion for solving problems.
 TECHNICAL SKILLS:
 Python, React.js; Node.js, PostgreSQL,
 Git, .NET, scikit-learn.
+C++, C#, Python, python.
 
 EXPERIENCE:
 Software Developer
 Nevermore Labs · 2021 – Present
 - Built web applications.
 * Improved API performance.
+- Reduced errors!
 
 EDUCATION:
 - BSc Computer Science, Nevermore University
@@ -50,14 +52,21 @@ def test_summary_excludes_name_contact_and_unlabeled_location():
 
 def test_skills_are_raw_and_boundary_punctuation_is_cleaned():
     result = extract(SAMPLE_RESUME)
-    assert result.skills_raw == ["Python", "React.js", "Node.js", "PostgreSQL", "Git", ".NET", "scikit-learn"]
+    assert result.skills_raw == [
+        "Python", "React.js", "Node.js", "PostgreSQL", "Git", ".NET",
+        "scikit-learn", "C++", "C#", "Python", "python",
+    ]
 
 
 def test_extracts_education_lines_and_preserves_internal_commas():
-    result = extract(SAMPLE_RESUME)
+    result = extract(SAMPLE_RESUME.replace(
+        "MSc Software Engineering, Nightshade Institute",
+        "MSc Software Engineering, Nightshade Institute\n• BSc,",
+    ))
     assert result.education == [
         "BSc Computer Science, Nevermore University",
         "MSc Software Engineering, Nightshade Institute",
+        "BSc,",
     ]
 
 
@@ -68,7 +77,11 @@ def test_extracts_experience_and_bullets():
     assert entry.title == "Software Developer"
     assert entry.organization == "Nevermore Labs"
     assert entry.period == "2021 – Present"
-    assert entry.bullets == ["Built web applications.", "Improved API performance."]
+    assert entry.bullets == [
+        "Built web applications.",
+        "Improved API performance.",
+        "Reduced errors!",
+    ]
 
 
 def test_multiple_experiences_do_not_require_blank_line_between_entries():
@@ -107,6 +120,12 @@ def test_skills_are_not_misclassified_as_location_when_contact_is_missing():
     assert result.summary == ""
 
 
+def test_skills_remove_list_markers():
+    result = extract("Jane Doe\nSKILLS:\n- Python\n* Java\n• Git")
+
+    assert result.skills_raw == ["Python", "Java", "Git"]
+
+
 def test_labeled_location_is_detected_in_contact_header():
     result = extract("Jane Doe\nLocation: Cali, Colombia\nSKILLS\nPython")
     assert result.contact.location == "Cali, Colombia"
@@ -116,9 +135,38 @@ def test_labeled_location_is_detected_in_contact_header():
 def test_missing_sections_return_empty_collections():
     result = extract("Mary Jane Watson\nmary@example.com")
     assert result.name == "Mary Jane Watson"
+    assert result.contact == ContactInfo(email="mary@example.com")
+    assert result.summary == ""
     assert result.skills_raw == []
     assert result.education == []
     assert result.experience == []
+
+
+def test_extract_removes_leading_bom():
+    result = extract("\ufeffJane Doe\nSKILLS:\nPython")
+
+    assert result == ExtractedData(
+        name="Jane Doe",
+        contact=ContactInfo(),
+        summary="",
+        skills_raw=["Python"],
+        education=[],
+        experience=[],
+    )
+
+
+@pytest.mark.parametrize(
+    "skills_section",
+    ["Technical Skills:\nPython, Java", "Technical Skills: Python, Java"],
+    ids=["header-on-own-line", "header-with-inline-content"],
+)
+def test_section_header_formats_keep_following_sections_separate(skills_section):
+    result = extract(f"Jane Doe\n{skills_section}\nEDUCATION:\nBSc Computer Science")
+
+    assert result.skills_raw == ["Python", "Java"]
+    assert result.education == ["BSc Computer Science"]
+    assert result.experience == []
+    assert result.summary == ""
 
 
 def test_section_order_and_aliases_are_supported():
@@ -137,9 +185,57 @@ Python; Java""")
 
 
 def test_crlf_line_endings_are_supported():
-    result = extract("Jane Doe\r\nSKILLS:\r\nPython, Java\r\nEDUCATION:\r\n- Systems Engineering")
+    result = extract(
+        "Jane Doe\r\njane@example.com\r\nBackend engineer.\r\n"
+        "SKILLS:\r\nPython, Java\r\nEXPERIENCE:\r\nDeveloper\r\n"
+        "Acme | 2020-2022\r\n- Built systems\r\nEDUCATION:\r\n"
+        "- Systems Engineering"
+    )
+    assert result.name == "Jane Doe"
+    assert result.contact == ContactInfo(email="jane@example.com")
+    assert result.summary == "Backend engineer."
     assert result.skills_raw == ["Python", "Java"]
     assert result.education == ["Systems Engineering"]
+    assert result.experience == [
+        ExperienceEntry("Developer", "Acme", "2020-2022", ["Built systems"])
+    ]
+
+
+def test_cr_line_endings_are_supported():
+    result = extract("Jane Doe\rSKILLS:\rPython")
+
+    assert result.name == "Jane Doe"
+    assert result.skills_raw == ["Python"]
+
+
+def test_summary_starts_after_name_and_ends_before_first_section():
+    result = extract(
+        "Jane Doe\njane@example.com\nBackend engineer.\n"
+        "SKILLS:\nPython\nEDUCATION:\nBSc Computer Science"
+    )
+
+    assert result.summary == "Backend engineer."
+    assert result.skills_raw == ["Python"]
+    assert result.education == ["BSc Computer Science"]
+
+
+def test_phone_preserves_documented_parentheses():
+    result = extract("Jane Doe\n(604) 555-1234")
+
+    assert result.contact.phone == "(604) 555-1234"
+
+
+def test_empty_text_returns_empty_extracted_data():
+    result = extract("")
+
+    assert result == ExtractedData(
+        name="",
+        contact=ContactInfo(),
+        summary="",
+        skills_raw=[],
+        education=[],
+        experience=[],
+    )
 
 
 def test_date_range_is_not_extracted_as_phone():
