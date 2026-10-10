@@ -1,270 +1,259 @@
 {
-  "version": 1,
-  "description": "ResumeLens technical skills catalog: maps raw skill text (aliases) to a canonical name and category. Array order inside each category is the tie-breaker for order(). Variants of the canonical name itself (e.g. 'python', 'node js') are added by the loader, not listed here.",
+  "version": 2,
+  "profiles": ["FULL_STACK", "ML_ENGINEER", "DEVOPS", "DATA_ENGINEER"],
+  "categories": [
+    "LANGUAGE",
+    "FRONTEND",
+    "BACKEND",
+    "DATABASE",
+    "ML_LIBRARY",
+    "DATA_PROCESSING",
+    "WORKFLOW",
+    "CONTAINER",
+    "CI_CD",
+    "IAC",
+    "CLOUD",
+    "VCS"
+  ],
   "qualifications": [
     {
       "canonical": "JAVASCRIPT",
       "category": "LANGUAGE",
-      "aliases": [
-        "JS",
-        "Javascript",
-        "ECMAScript"
-      ]
+      "aliases": ["JS", "Javascript", "ECMAScript"],
+      "profiles": ["FULL_STACK"]
     },
     {
       "canonical": "TYPESCRIPT",
       "category": "LANGUAGE",
-      "aliases": [
-        "TS"
-      ]
+      "aliases": ["TS"],
+      "profiles": ["FULL_STACK"]
+    },
+    {
+      "canonical": "JAVA",
+      "category": "LANGUAGE",
+      "aliases": [],
+      "profiles": ["FULL_STACK"]
     },
     {
       "canonical": "PYTHON",
       "category": "LANGUAGE",
-      "aliases": [
-        "py",
-        "Python3"
-      ]
+      "aliases": ["py", "Python3"],
+      "profiles": ["FULL_STACK", "ML_ENGINEER", "DEVOPS", "DATA_ENGINEER"]
     },
     {
       "canonical": "BASH",
       "category": "LANGUAGE",
-      "aliases": [
-        "Shell",
-        "Shell scripting",
-        "sh"
-      ]
+      "aliases": ["Shell", "Shell scripting", "sh"],
+      "profiles": ["DEVOPS"]
     },
     {
       "canonical": "GO",
       "category": "LANGUAGE",
-      "aliases": [
-        "Golang"
-      ]
+      "aliases": ["Golang"],
+      "profiles": ["DEVOPS"]
     },
     {
       "canonical": "REACT",
       "category": "FRONTEND",
-      "aliases": [
-        "React.js",
-        "ReactJS"
-      ]
+      "aliases": ["React.js", "ReactJS"],
+      "profiles": ["FULL_STACK"]
     },
     {
       "canonical": "ANGULAR",
       "category": "FRONTEND",
-      "aliases": [
-        "Angular.js",
-        "AngularJS"
-      ]
+      "aliases": ["Angular.js", "AngularJS"],
+      "profiles": ["FULL_STACK"]
     },
     {
       "canonical": "VUE",
       "category": "FRONTEND",
-      "aliases": [
-        "Vue.js",
-        "VueJS"
-      ]
+      "aliases": ["Vue.js", "VueJS"],
+      "profiles": ["FULL_STACK"]
     },
     {
       "canonical": "NODE_JS",
       "category": "BACKEND",
-      "aliases": [
-        "NodeJS",
-        "Node.js",
-        "Node"
-      ]
+      "aliases": ["NodeJS", "Node.js", "Node"],
+      "profiles": ["FULL_STACK"]
     },
     {
       "canonical": "DJANGO",
       "category": "BACKEND",
-      "aliases": []
+      "aliases": [],
+      "profiles": ["FULL_STACK"]
     },
     {
       "canonical": "SPRING_BOOT",
       "category": "BACKEND",
-      "aliases": [
-        "Spring",
-        "SpringBoot"
-      ]
+      "aliases": ["Spring", "SpringBoot"],
+      "profiles": ["FULL_STACK"]
     },
     {
       "canonical": "REST_API",
       "category": "BACKEND",
-      "aliases": [
-        "REST",
-        "RESTful"
-      ]
+      "aliases": ["REST", "RESTful", "RESTful API", "REST API"],
+      "profiles": ["FULL_STACK"]
     },
     {
       "canonical": "SQL",
       "category": "DATABASE",
-      "aliases": []
+      "aliases": [],
+      "profiles": ["FULL_STACK", "ML_ENGINEER", "DATA_ENGINEER"]
     },
     {
       "canonical": "POSTGRESQL",
       "category": "DATABASE",
-      "aliases": [
-        "Postgres",
-        "psql"
-      ]
+      "aliases": ["Postgres", "psql"],
+      "profiles": ["FULL_STACK", "ML_ENGINEER", "DATA_ENGINEER"]
     },
     {
       "canonical": "MONGODB",
       "category": "DATABASE",
-      "aliases": [
-        "Mongo"
-      ]
+      "aliases": ["Mongo"],
+      "profiles": ["FULL_STACK", "DATA_ENGINEER"]
     },
     {
       "canonical": "MYSQL",
       "category": "DATABASE",
-      "aliases": []
+      "aliases": [],
+      "profiles": ["DATA_ENGINEER"]
     },
     {
       "canonical": "SNOWFLAKE",
       "category": "DATABASE",
-      "aliases": []
+      "aliases": [],
+      "profiles": ["DATA_ENGINEER"]
     },
     {
       "canonical": "PANDAS",
       "category": "ML_LIBRARY",
-      "aliases": []
+      "aliases": [],
+      "profiles": ["ML_ENGINEER"]
     },
     {
       "canonical": "NUMPY",
       "category": "ML_LIBRARY",
-      "aliases": []
+      "aliases": [],
+      "profiles": ["ML_ENGINEER"]
     },
     {
       "canonical": "SCIKIT_LEARN",
       "category": "ML_LIBRARY",
-      "aliases": [
-        "sklearn",
-        "scikit-learn"
-      ]
+      "aliases": ["sklearn", "scikit-learn"],
+      "profiles": ["ML_ENGINEER"]
     },
     {
       "canonical": "TENSORFLOW",
       "category": "ML_LIBRARY",
-      "aliases": [
-        "TF"
-      ]
+      "aliases": ["TF"],
+      "profiles": ["ML_ENGINEER"]
     },
     {
       "canonical": "PYTORCH",
       "category": "ML_LIBRARY",
-      "aliases": [
-        "torch"
-      ]
+      "aliases": ["torch"],
+      "profiles": ["ML_ENGINEER"]
     },
     {
       "canonical": "SPARK",
       "category": "DATA_PROCESSING",
-      "aliases": [
-        "Apache Spark",
-        "PySpark"
-      ]
+      "aliases": ["Apache Spark", "PySpark"],
+      "profiles": ["DATA_ENGINEER"]
     },
     {
       "canonical": "KAFKA",
       "category": "DATA_PROCESSING",
-      "aliases": [
-        "Apache Kafka"
-      ]
+      "aliases": ["Apache Kafka"],
+      "profiles": ["DATA_ENGINEER"]
     },
     {
       "canonical": "HADOOP",
       "category": "DATA_PROCESSING",
-      "aliases": [
-        "Apache Hadoop"
-      ]
+      "aliases": ["Apache Hadoop"],
+      "profiles": ["DATA_ENGINEER"]
     },
     {
       "canonical": "DBT",
       "category": "DATA_PROCESSING",
-      "aliases": [
-        "dbt"
-      ]
+      "aliases": ["dbt"],
+      "profiles": ["DATA_ENGINEER"]
     },
     {
       "canonical": "AIRFLOW",
       "category": "WORKFLOW",
-      "aliases": [
-        "Apache Airflow"
-      ]
+      "aliases": ["Apache Airflow"],
+      "profiles": ["DATA_ENGINEER"]
     },
     {
       "canonical": "DOCKER",
       "category": "CONTAINER",
-      "aliases": [
-        "Docker Compose"
-      ]
+      "aliases": ["Docker Compose"],
+      "profiles": ["DEVOPS"]
     },
     {
       "canonical": "KUBERNETES",
       "category": "CONTAINER",
-      "aliases": [
-        "K8s",
-        "kube"
-      ]
+      "aliases": ["K8s", "kube"],
+      "profiles": ["DEVOPS"]
     },
     {
       "canonical": "JENKINS",
       "category": "CI_CD",
-      "aliases": []
+      "aliases": [],
+      "profiles": ["DEVOPS"]
     },
     {
       "canonical": "GITHUB_ACTIONS",
       "category": "CI_CD",
       "aliases": [
         "GH Actions",
-        "Github Actions"
-      ]
+        "Github Actions",
+        "GitHub Actions",
+        "GitHub CI"
+      ],
+      "profiles": ["DEVOPS"]
     },
     {
       "canonical": "GITLAB_CI",
       "category": "CI_CD",
-      "aliases": [
-        "GitLab CI/CD"
-      ]
+      "aliases": ["GitLab CI/CD", "GitLab CI"],
+      "profiles": ["DEVOPS"]
     },
     {
       "canonical": "TERRAFORM",
       "category": "IAC",
-      "aliases": []
+      "aliases": [],
+      "profiles": ["DEVOPS"]
     },
     {
       "canonical": "ANSIBLE",
       "category": "IAC",
-      "aliases": []
+      "aliases": [],
+      "profiles": ["DEVOPS"]
     },
     {
       "canonical": "AWS",
       "category": "CLOUD",
-      "aliases": [
-        "Amazon Web Services"
-      ]
+      "aliases": ["Amazon Web Services"],
+      "profiles": ["DEVOPS", "DATA_ENGINEER"]
     },
     {
       "canonical": "GCP",
       "category": "CLOUD",
-      "aliases": [
-        "Google Cloud",
-        "Google Cloud Platform"
-      ]
+      "aliases": ["Google Cloud", "Google Cloud Platform"],
+      "profiles": ["DEVOPS", "DATA_ENGINEER"]
     },
     {
       "canonical": "AZURE",
       "category": "CLOUD",
-      "aliases": [
-        "Microsoft Azure"
-      ]
+      "aliases": ["Microsoft Azure"],
+      "profiles": ["DEVOPS", "DATA_ENGINEER"]
     },
     {
       "canonical": "GIT",
       "category": "VCS",
-      "aliases": []
+      "aliases": [],
+      "profiles": ["FULL_STACK", "ML_ENGINEER", "DEVOPS", "DATA_ENGINEER"]
     }
   ]
 }
