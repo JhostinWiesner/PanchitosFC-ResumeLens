@@ -44,6 +44,7 @@ class Qualification:
     canonical: str
     category: str
     aliases: tuple[str, ...]
+    profiles: tuple[str, ...]
     position: int
     spellings: tuple[str, ...]  # alias + variantes del canónico, ya normalizados
 
@@ -81,6 +82,16 @@ class Catalog:
     def from_dict(cls, raw: object) -> "Catalog":
         if not isinstance(raw, dict) or not isinstance(raw.get("qualifications"), list):
             raise CatalogError("El catálogo debe ser un objeto con la lista 'qualifications'")
+        valid_profiles = raw.get("profiles")
+        if not isinstance(valid_profiles, list) or not all(
+            isinstance(profile, str) and profile.strip() for profile in valid_profiles
+        ):
+            raise CatalogError("'profiles' debe ser una lista de textos no vacíos")
+        if len(set(valid_profiles)) != len(valid_profiles):
+            raise CatalogError("'profiles' no puede contener repetidos")
+        if not all(_NAME_RE.fullmatch(profile) for profile in valid_profiles):
+            raise CatalogError("'profiles' debe contener identificadores MAYUSCULAS_CON_GUION_BAJO")
+        valid_profile_set = set(valid_profiles)
 
         items: list[Qualification] = []
         seen: set[str] = set()
@@ -88,11 +99,14 @@ class Catalog:
             where = f"qualifications[{position}]"
             if not isinstance(entry, dict):
                 raise CatalogError(f"{where}: debe ser un objeto")
-            missing = {"canonical", "category", "aliases"} - entry.keys()
+            missing = {"canonical", "category", "aliases", "profiles"} - entry.keys()
             if missing:
                 raise CatalogError(f"{where}: faltan campos {sorted(missing)}")
 
-            canonical, category, aliases = entry["canonical"], entry["category"], entry["aliases"]
+            canonical = entry["canonical"]
+            category = entry["category"]
+            aliases = entry["aliases"]
+            profiles = entry["profiles"]
             for label, value in (("canonical", canonical), ("category", category)):
                 if not isinstance(value, str) or not _NAME_RE.fullmatch(value):
                     raise CatalogError(
@@ -102,6 +116,17 @@ class Catalog:
                     isinstance(a, str) and a.strip() for a in aliases
             ):
                 raise CatalogError(f"{where}: 'aliases' debe ser una lista de textos no vacíos")
+            if not isinstance(profiles, list) or not all(
+                    isinstance(profile, str) and profile.strip() for profile in profiles
+            ):
+                raise CatalogError(f"{where}: 'profiles' debe ser una lista de textos no vacíos")
+            if len(set(profiles)) != len(profiles):
+                raise CatalogError(f"{where}: 'profiles' no puede contener repetidos")
+            unknown_profiles = sorted(set(profiles) - valid_profile_set)
+            if unknown_profiles:
+                raise CatalogError(
+                    f"{where}: perfiles no definidos en 'profiles': {unknown_profiles}"
+                )
             if canonical in seen:
                 raise CatalogError(f"{where}: canónico repetido '{canonical}'")
             seen.add(canonical)
@@ -112,7 +137,14 @@ class Catalog:
                 if form not in forms:
                     forms.append(form)
             items.append(
-                Qualification(canonical, category, tuple(aliases), position, tuple(forms))
+                Qualification(
+                    canonical,
+                    category,
+                    tuple(aliases),
+                    tuple(profiles),
+                    position,
+                    tuple(forms),
+                )
             )
         return cls(tuple(items))
 
@@ -128,6 +160,14 @@ class Catalog:
     def position(self, canonical: str) -> int:
         """Posición global: desempate dentro de una categoría en ``order()``."""
         return self.get(canonical).position
+
+    def qualifications_for(self, profile: str, category: str) -> tuple[str, ...]:
+        """Devuelve el grupo del autómata en el orden del archivo."""
+        return tuple(
+            qualification.canonical
+            for qualification in self._items
+            if profile in qualification.profiles and qualification.category == category
+        )
 
     @property
     def categories(self) -> tuple[str, ...]:

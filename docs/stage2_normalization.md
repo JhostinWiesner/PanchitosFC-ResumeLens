@@ -31,6 +31,7 @@ The row order within each category serves as the **tie-breaker** for `order()`.
 |---|---|---|:-:|:-:|:-:|:-:|
 | `JAVASCRIPT` | `LANGUAGE` | JS, ​​Javascript, ECMAScript | ✓ | | | |
 | `TYPESCRIPT` | `LANGUAGE` | TS | ✓ | | | |
+| `JAVA` | `LANGUAGE` | | ✓ | | | |
 | `PYTHON` | `LANGUAGE` | py, Python3 | | ✓ | ✓ | ✓ |
 | `BASH` | `LANGUAGE` | Shell, Shell scripting, sh | | | ✓ | |
 | `GO` | `LANGUAGE` | Golang | | | ✓ | |
@@ -88,7 +89,7 @@ Team convention: `LANGUAGE` first and `VCS` always last.
 #### Qualifications by profile and category
 
 **Full Stack Developer**
-- `LANGUAGE`: JAVASCRIPT, TYPESCRIPT
+- `LANGUAGE`: JAVASCRIPT, TYPESCRIPT, JAVA, PYTHON
 - `FRONTEND`: REACT, ANGULAR, VUE
 - `BACKEND`: NODE_JS, DJANGO, SPRING_BOOT, REST_API
 - `DATABASE`: SQL, POSTGRESQL, MONGODB
@@ -122,6 +123,8 @@ Team convention: `LANGUAGE` first and `VCS` always last.
 
 1. **Tie-breaking within a category:** the order in which qualifications appear in the global catalog (section 2) is used, not the order in which the candidate wrote them.
 2. **Categories not used by the profile:** `order()` **ignores** them for that profile. ResumeLens evaluates whether a pattern is met; it does not penalize the candidate for having other skills. ### Examples
+
+The catalog query `qualifications_for(profile, category)` returns each group `G_i` in file order. The ordering stage uses this same query to filter qualifications before applying the profile's category order.
 
 #### Examples
 
