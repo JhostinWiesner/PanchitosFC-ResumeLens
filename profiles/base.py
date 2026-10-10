@@ -1,29 +1,21 @@
-from abc import ABC, abstractmethod
-from pyformlang.finite_automaton import FiniteAutomaton
+from dataclasses import dataclass
 
+ACCEPTED_TEXT = "The normalized qualifications satisfy an accepted {profile} pattern."
+REJECTED_TEXT = "The normalized qualifications do not satisfy an accepted {profile} pattern."
 
-class Profile(ABC):
-    """Base abstract class for professional profiles."""
+@dataclass(frozen=True)
+class Profile:
+    """A professional profile. It only holds data.
 
-    @property
-    @abstractmethod
-    def name(self) -> str:
-        """Name of the profile (e.g., 'Full Stack Developer')."""
-        pass
+    identifier:      id used in catalog.json (e.g. "FULL_STACK")
+    name:            display name (e.g. "Full Stack Developer")
+    canonical_order: categories in the order the profile requires
+    """
 
-    @property
-    @abstractmethod
-    def canonical_order(self) -> list[str]:
-        """Ordered list of canonical qualifications for this profile."""
-        pass
+    identifier: str
+    name: str
+    canonical_order: tuple[str, ...]
 
-    @property
-    @abstractmethod
-    def automaton(self) -> FiniteAutomaton:
-        """Automaton that accepts the canonical order of qualifications for this profile."""
-        pass
-
-    @abstractmethod
     def get_explanation(self, accepted: bool) -> str:
-        """Generates an explanation for the classification result based on whether the profile was accepted or rejected."""
-        pass
+        template = ACCEPTED_TEXT if accepted else REJECTED_TEXT
+        return template.format(profile=self.name)

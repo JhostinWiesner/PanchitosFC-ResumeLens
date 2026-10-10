@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from text import normalize_text
+from core.text import normalize_text
 
 import json
 import re
@@ -52,7 +52,8 @@ class Qualification:
 class Catalog:
     """Catálogo validado e indexado."""
 
-    def __init__(self, qualifications: tuple[Qualification, ...]) -> None:
+    def __init__(self, profiles: tuple[str, ...], qualifications: tuple[Qualification, ...]) -> None:
+        self._profiles = profiles
         self._items = qualifications
         self._by_canonical = {q.canonical: q for q in qualifications}
         self._by_spelling: dict[str, str] = {}
@@ -146,7 +147,7 @@ class Catalog:
                     tuple(forms),
                 )
             )
-        return cls(tuple(items))
+        return cls(tuple(valid_profiles), tuple(items))
 
     def get(self, canonical: str) -> Qualification:
         try:
@@ -161,8 +162,16 @@ class Catalog:
         """Posición global: desempate dentro de una categoría en ``order()``."""
         return self.get(canonical).position
 
+    @property
+    def profiles(self) -> tuple[str, ...]:
+        return self._profiles
+
     def qualifications_for(self, profile: str, category: str) -> tuple[str, ...]:
         """Devuelve el grupo del autómata en el orden del archivo."""
+        if profile not in self._profiles:
+            raise KeyError(f"'{profile}' no es un perfil del catálogo")
+        if category not in self.categories:
+            raise KeyError(f"'{category}' no es una categoría del catálogo")
         return tuple(
             qualification.canonical
             for qualification in self._items
