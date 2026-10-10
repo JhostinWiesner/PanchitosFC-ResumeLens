@@ -19,7 +19,8 @@ SECTION_PATTERNS: dict[str, str] = {
     "education": r"(?:academic\s+background|academic\s+qualifications|education)",
 }
 ANY_SECTION_HEADER = re.compile(
-    r"(?im)^[ \t]*(?:" + "|".join(SECTION_PATTERNS.values()) + r")[ \t]*:?[ \t]*$"
+    r"(?im)^[ \t]*(?P<header>(?:" + "|".join(SECTION_PATTERNS.values()) + r"))[ \t]*"
+    r"(?::[ \t]*(?P<inline>[^\r\n]*?)[ \t]*)?$"
 )
 SECTION_HEADER_PATTERNS = {
     key: re.compile(r"(?i)^(?:" + value + r")$")
@@ -48,6 +49,7 @@ NAME = re.compile(
     r"(?:[ \t]+[A-ZÀ-ÖØ-Þ][A-Za-zÀ-ÖØ-öø-ÿ'’.-]*){1,3}$"
 )
 SKILL_DELIMITER = re.compile(r"[,;\n]+")
+SKILL_LIST_MARKER = re.compile(r"^[ \t]*[-*•][ \t]+")
 BULLET_LINE = re.compile(r"^[ \t]*[•●▪*\-][ \t]+(.+?)[ \t]*$")
 PERIOD = re.compile(
     r"(?i)(?<!\d)(?:19|20)\d{2}[ \t]*(?:[-–—]|\bto\b)[ \t]*"
@@ -74,7 +76,7 @@ def _section_spans(text: str) -> dict[str, str]:
     sections: dict[str, str] = {}
 
     for index, match in enumerate(matches):
-        heading = match.group(0).strip().rstrip(":").strip()
+        heading = match.group("header").strip()
         key = next(
             (
                 name
@@ -88,8 +90,10 @@ def _section_spans(text: str) -> dict[str, str]:
 
         start = match.end()
         end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        inline_content = match.group("inline") or ""
+        content = (inline_content + text[start:end]).strip()
         # Do not silently merge repeated headings into one section.
-        sections.setdefault(key, text[start:end].strip())
+        sections.setdefault(key, content)
 
     return sections
 
@@ -120,7 +124,7 @@ def _extract_name(text: str) -> str:
 def _find_phone(text: str) -> str | None:
     """Find a phone-like value while rejecting obvious year ranges."""
     for match in PHONE.finditer(text):
-        candidate = _clean_edge_punctuation(match.group(0))
+        candidate = match.group(0)
         digits = re.sub(r"\D", "", candidate)
         # Dates such as 2021-2023 are not contact phone numbers.
         if PERIOD.fullmatch(candidate):
@@ -174,14 +178,31 @@ def _is_contact_line(line: str) -> bool:
 
 
 def _extract_summary(text: str, name: str) -> str:
-    """Capture free text before the first section, excluding name/contact lines."""
+    """Capture free text after the name and before the first section."""
     header = text[:_first_section_start(text)]
+    lines = header.splitlines()
+    name_line_index = None
+    for index, line in enumerate(lines[:5]):
+        candidate = line.strip()
+        if not candidate:
+            continue
+        if EMAIL.search(candidate) or PHONE.search(candidate):
+            continue
+        if LINKEDIN.search(candidate) or GITHUB.search(candidate):
+            continue
+        if NAME.fullmatch(candidate) and _clean_edge_punctuation(candidate) == name:
+            name_line_index = index
+            break
+
+    if not name or name_line_index is None:
+        return ""
+
     kept: list[str] = []
 
-    for line in header.splitlines():
+    for line in lines[name_line_index + 1:]:
         candidate = line.strip()
-        if not candidate or (name and candidate == name):
-            if not candidate and kept and kept[-1] != "":
+        if not candidate:
+            if kept and kept[-1] != "":
                 kept.append("")
             continue
         if _is_contact_line(candidate):
@@ -197,7 +218,8 @@ def _extract_skills(section: str | None) -> list[str]:
         return []
     result: list[str] = []
     for token in SKILL_DELIMITER.split(section):
-        cleaned = _clean_edge_punctuation(token).rstrip(".").strip()
+        without_marker = SKILL_LIST_MARKER.sub("", token, count=1)
+        cleaned = _clean_edge_punctuation(without_marker).rstrip(".").strip()
         if cleaned:
             result.append(cleaned)
     return result
@@ -210,7 +232,6 @@ def _extract_education(section: str | None) -> list[str]:
     entries: list[str] = []
     for line in section.splitlines():
         cleaned = re.sub(r"^[ \t]*[•●▪*\-][ \t]*", "", line).strip()
-        cleaned = _clean_edge_punctuation(cleaned)
         if cleaned:
             entries.append(cleaned)
     return entries
@@ -252,7 +273,7 @@ def _experience_entry_from_anchor(lines: list[str], anchor_index: int, next_anch
     for line in lines[anchor_index + 1:next_anchor]:
         bullet_match = BULLET_LINE.fullmatch(line)
         if bullet_match:
-            bullet = _clean_edge_punctuation(bullet_match.group(1))
+            bullet = bullet_match.group(1).strip()
             if bullet:
                 bullets.append(bullet)
 
@@ -298,7 +319,7 @@ def _extract_experience(section: str | None) -> list[ExperienceEntry]:
         for line in block_lines[1:]:
             bullet_match = BULLET_LINE.fullmatch(line)
             if bullet_match:
-                bullet = _clean_edge_punctuation(bullet_match.group(1))
+                bullet = bullet_match.group(1).strip()
                 if bullet:
                     bullets.append(bullet)
                 continue
@@ -321,8 +342,8 @@ def extract(resume_text: str) -> ExtractedData:
     if not isinstance(resume_text, str):
         raise TypeError("resume_text must be a string")
 
-    # Normalize line endings so anchored, multiline expressions behave uniformly.
-    text = resume_text.replace("\r\n", "\n").replace("\r", "\n")
+    # Remove only a leading BOM, then normalize line endings before applying regexes.
+    text = resume_text.removeprefix("\ufeff").replace("\r\n", "\n").replace("\r", "\n")
     sections = _section_spans(text)
     name = _extract_name(text)
 
