@@ -1,9 +1,10 @@
-
+from core.catalog import Catalog
 from core.extraction import extract
 from core.normalization import normalize
 
 
 def test_extract_and_normalize_known_skills():
+    catalog = Catalog.from_json()
     resume_text = """
     Jane Doe
     jane.doe@example.com
@@ -12,7 +13,7 @@ def test_extract_and_normalize_known_skills():
     """
 
     extracted = extract(resume_text)
-    normalized = normalize(extracted)
+    normalized = normalize(extracted, catalog)
 
     assert extracted.skills_raw == ["Python", "Docker", "Git"]
     assert normalized.tokens == ["PYTHON", "DOCKER", "GIT"]
@@ -20,6 +21,7 @@ def test_extract_and_normalize_known_skills():
 
 
 def test_extract_and_normalize_preserves_unknown_terms():
+    catalog = Catalog.from_json()
     unknown_skill = "tecnologia_inventada_xyz"
 
     resume_text = f"""
@@ -30,7 +32,7 @@ def test_extract_and_normalize_preserves_unknown_terms():
     """
 
     extracted = extract(resume_text)
-    normalized = normalize(extracted)
+    normalized = normalize(extracted, catalog)
 
     assert extracted.skills_raw == [
         "Python",
@@ -42,6 +44,7 @@ def test_extract_and_normalize_preserves_unknown_terms():
 
 
 def test_extract_and_normalize_without_skills_section():
+    catalog = Catalog.from_json()
     resume_text = """
     Jane Doe
     jane.doe@example.com
@@ -50,7 +53,7 @@ def test_extract_and_normalize_without_skills_section():
     """
 
     extracted = extract(resume_text)
-    normalized = normalize(extracted)
+    normalized = normalize(extracted, catalog)
 
     assert extracted.skills_raw == []
     assert normalized.tokens == []
@@ -58,6 +61,7 @@ def test_extract_and_normalize_without_skills_section():
 
 
 def test_extract_and_normalize_multiple_skills():
+    catalog = Catalog.from_json()
     resume_text = """
     Jane Doe
 
@@ -65,7 +69,7 @@ def test_extract_and_normalize_multiple_skills():
     """
 
     extracted = extract(resume_text)
-    normalized = normalize(extracted)
+    normalized = normalize(extracted, catalog)
 
     assert extracted.skills_raw == [
         "JavaScript",
