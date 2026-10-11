@@ -37,8 +37,6 @@ $M_{FS} = (Q, \Sigma, \delta, q_0, F)$
 - $q_0$ is the initial state.
 - $F = {q_5}$.
 
-$\delta$ has 26 transitions: 13 advance and 13 stay.
-
 ### Language recognized
 
 $L(M_{FS}) = G1^+ G2^+ G3^+ G4^+ G5^+$
