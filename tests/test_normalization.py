@@ -1,4 +1,3 @@
-
 from core.catalog import Catalog
 from core.normalization import normalize
 from core.types import (
@@ -7,6 +6,13 @@ from core.types import (
     ExtractedData,
     NormalizedQualifications,
 )
+
+import pytest
+
+
+@pytest.fixture
+def catalog() -> Catalog:
+    return Catalog.from_json()
 
 
 def make_extracted(skills: list[str]) -> ExtractedData:
@@ -20,18 +26,17 @@ def make_extracted(skills: list[str]) -> ExtractedData:
     )
 
 
-def test_normalize_all_catalog_spellings():
-    catalog = Catalog.from_json()
+def test_normalize_all_catalog_spellings(catalog):
     spellings = catalog.spellings()
 
-    result = normalize(make_extracted(list(spellings)))
+    result = normalize(make_extracted(list(spellings)), catalog)
 
     assert isinstance(result, NormalizedQualifications)
     assert result.tokens == list(spellings.values())
     assert result.unrecognized == []
 
 
-def test_normalize_aliases_and_variants():
+def test_normalize_aliases_and_variants(catalog):
     extracted = make_extracted([
         "JS",
         "  React.JS ",
@@ -40,7 +45,7 @@ def test_normalize_aliases_and_variants():
         "K8s",
     ])
 
-    result = normalize(extracted)
+    result = normalize(extracted, catalog)
 
     assert result.tokens == [
         "JAVASCRIPT",
@@ -52,14 +57,14 @@ def test_normalize_aliases_and_variants():
     assert result.unrecognized == []
 
 
-def test_unknown_candidates_are_preserved():
+def test_unknown_candidates_are_preserved(catalog):
     extracted = make_extracted([
         "Rust",
         "tecnologia_inventada",
         "pythonx",
     ])
 
-    result = normalize(extracted)
+    result = normalize(extracted, catalog)
 
     assert result.tokens == []
     assert result.unrecognized == [
@@ -69,7 +74,7 @@ def test_unknown_candidates_are_preserved():
     ]
 
 
-def test_mixed_known_and_unknown_candidates():
+def test_mixed_known_and_unknown_candidates(catalog):
     extracted = make_extracted([
         "Python",
         "Rust",
@@ -77,26 +82,26 @@ def test_mixed_known_and_unknown_candidates():
         "UnknownTech",
     ])
 
-    result = normalize(extracted)
+    result = normalize(extracted, catalog)
 
     assert result.tokens == ["PYTHON", "PYTORCH"]
     assert result.unrecognized == ["Rust", "UnknownTech"]
 
 
-def test_duplicate_candidates_are_preserved():
+def test_duplicate_candidates_are_preserved(catalog):
     extracted = make_extracted([
         "Python",
         "PYTHON",
         "py",
     ])
 
-    result = normalize(extracted)
+    result = normalize(extracted, catalog)
 
     assert result.tokens == ["PYTHON", "PYTHON", "PYTHON"]
     assert result.unrecognized == []
 
 
-def test_blank_candidates_are_ignored():
+def test_blank_candidates_are_ignored(catalog):
     extracted = make_extracted([
         "",
         "   ",
@@ -104,14 +109,14 @@ def test_blank_candidates_are_ignored():
         "Python",
     ])
 
-    result = normalize(extracted)
+    result = normalize(extracted, catalog)
 
     assert result.tokens == ["PYTHON"]
     assert result.unrecognized == []
 
 
-def test_empty_skills_list():
-    result = normalize(make_extracted([]))
+def test_empty_skills_list(catalog):
+    result = normalize(make_extracted([]), catalog)
 
     assert result.tokens == []
     assert result.unrecognized == []

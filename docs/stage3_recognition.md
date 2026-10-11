@@ -22,7 +22,7 @@ A résumé satisfies the Full Stack Developer pattern when its ordered sequence 
 
 $M_{FS} = (Q, \Sigma, \delta, q_0, F)$
 
-- $Q = {q_0, q_1, q_2, q_3, q_4, q_5}$
+- $Q = \{q_0, q_1, q_2, q_3, q_4, q_5\}$
   - $q_0$: no requirement met
   - $q_1$: a language found (G1)
   - $q_2$: a frontend framework found (G2)
@@ -30,12 +30,12 @@ $M_{FS} = (Q, \Sigma, \delta, q_0, F)$
   - $q_4$: a database found (G4)
   - $q_5$: version control found (G5), all requirements met
 - $\Sigma = G1 \cup G2 \cup G3 \cup G4 \cup G5$ (15 symbols: JAVASCRIPT, TYPESCRIPT, JAVA, PYTHON, REACT, ANGULAR, VUE, NODE_JS, DJANGO, SPRING_BOOT, REST_API, SQL, POSTGRESQL, MONGODB, GIT)
-- $\delta$, for $i = 1, 2, 3, 4, 5$ and every a in $G_i$:
-  - advance: $\delta(q(i-1), a) = q_i$
+- $\delta$, for $i = 1, 2, 3, 4, 5$ and every $a$ in $G_i$:
+  - advance: $\delta(q_{i-1}, a) = q_i$
   - stay: $\delta(q_i, a) = q_i$ (another alternative of the same group)
   - Every pair (state, symbol) not listed has no transition: it leads to an implicit non-accepting trap state, and the sequence is rejected.
 - $q_0$ is the initial state.
-- $F = {q_5}$.
+- $F = \{q_5\}$.
 
 ### Language recognized
 
@@ -45,7 +45,7 @@ That is, one or more symbols of G1, followed by one or more of G2, then G3, G4 a
 
 ### Automaton type: DFA
 
-1. There is a single initial state and no λ-transitions: every transition reads one symbol.
+1. There is a single initial state and no $\lambda$-transitions: every transition reads one symbol.
 2. From each state, a symbol has at most one transition. From $q_i$, a symbol can belong to $G_i$ (stay) or to $G_{i+1}$ (advance), never both, because the groups are disjoint: every qualification in the catalog has exactly one category.
 
 Nondeterminism is not needed: the ordering stage guarantees that, at each moment, only the current group or the next one can still be satisfied, and no group is optional.
@@ -110,32 +110,28 @@ The symbols in each group correspond to the qualifications assigned to `DEVOPS` 
 
 ### Formal definition
 
-\[
-M_{DEVOPS} = (Q, \Sigma, \delta, q_0, F)
-\]
+$$M_{DEVOPS} = (Q, \Sigma, \delta, q_0, F)$$
 
-- \(Q = \{q_0,q_1,q_2,q_3,q_4,q_5,q_6\}\).
-- \(q_0\): no requirement group has been satisfied.
-- \(q_i\), for \(1 \le i \le 5\): the first \(i\) requirement groups have been satisfied.
-- \(q_6\): all six requirement groups have been satisfied.
-- \(\Sigma = G_1 \cup G_2 \cup G_3 \cup G_4 \cup G_5 \cup G_6\).
+- $Q = \{q_0,q_1,q_2,q_3,q_4,q_5,q_6\}$.
+- $q_0$: no requirement group has been satisfied.
+- $q_i$, for $1 \le i \le 5$: the first $i$ requirement groups have been satisfied.
+- $q_6$: all six requirement groups have been satisfied.
+- $\Sigma = G_1 \cup G_2 \cup G_3 \cup G_4 \cup G_5 \cup G_6$.
 
-For each \(i \in \{1,\ldots,6\}\) and each \(a \in G_i\):
+For each $i \in \{1,\ldots,6\}$ and each $a \in G_i$:
 
-- Advance: \(\delta(q_{i-1},a)=q_i\).
-- Stay: \(\delta(q_i,a)=q_i\).
+- Advance: $\delta(q_{i-1},a)=q_i$.
+- Stay: $\delta(q_i,a)=q_i$.
 
 Every transition not explicitly defined leads to an implicit non-accepting trap state.
 
-The initial state is \(q_0\), and the accepting set is \(F=\{q_6\}\).
+The initial state is $q_0$, and the accepting set is $F=\{q_6\}$.
 
 There are 25 explicitly defined transitions: 13 advance transitions and 12 stay transitions.
 
 ### Language recognized
 
-\[
-L(M_{DEVOPS}) = G_1^+G_2^+G_3^+G_4^+G_5^+G_6^+
-\]
+$$L(M_{DEVOPS}) = G_1^+G_2^+G_3^+G_4^+G_5^+G_6^+$$
 
 The recognized sequence must contain at least one qualification from every group, in the prescribed order. Multiple alternatives from the same group are allowed before advancing to the next group.
 
@@ -186,3 +182,104 @@ flowchart LR
 | `DOCKER, JENKINS, TERRAFORM, AWS, GIT` | REJECTED | The sequence does not satisfy the language group first. |
 | `PYTHON, DOCKER, JENKINS, AWS, TERRAFORM, GIT` | REJECTED | Cloud appears before Infrastructure as Code. |
 
+---
+
+## Machine Learning Engineer Automaton
+
+### Input assumption
+
+The input is the sequence produced by the ordering stage for the Machine Learning Engineer profile. Only qualifications marked for `ML_ENGINEER` in `catalog.json` are retained, and they are sorted according to the canonical order:
+
+`LANGUAGE → DATABASE → ML_LIBRARY → VCS`.
+
+Qualifications belonging exclusively to other profiles are removed by the ordering stage.
+
+### Pattern
+
+A résumé satisfies the Machine Learning Engineer pattern when its ordered sequence contains at least one qualification from each of the four requirement groups below, in the specified order.
+
+| Group | Category | Symbols |
+|---|---|---|
+| G1 | `LANGUAGE` | `PYTHON` |
+| G2 | `DATABASE` | `SQL`, `POSTGRESQL` |
+| G3 | `ML_LIBRARY` | `PANDAS`, `NUMPY`, `SCIKIT_LEARN`, `TENSORFLOW`, `PYTORCH` |
+| G4 | `VCS` | `GIT` |
+
+The symbols in each group correspond to the qualifications assigned to `ML_ENGINEER` in the catalog.
+
+### Formal definition
+
+$$M_{ML} = (Q, \Sigma, \delta, q_0, F)$$
+
+- $Q = \{q_0,q_1,q_2,q_3,q_4\}$.
+- $q_0$: no requirement group has been satisfied.
+- $q_1$: the language group has been satisfied.
+- $q_2$: the database group has been satisfied.
+- $q_3$: the machine learning library group has been satisfied.
+- $q_4$: all four requirement groups have been satisfied.
+
+The alphabet is:
+
+$$\Sigma = G_1 \cup G_2 \cup G_3 \cup G_4$$
+
+There are 9 symbols in the alphabet: `PYTHON`, `SQL`, `POSTGRESQL`, `PANDAS`, `NUMPY`, `SCIKIT_LEARN`, `TENSORFLOW`, `PYTORCH`, and `GIT`.
+
+For each $i \in \{1,2,3,4\}$ and each $a \in G_i$:
+
+- Advance: $\delta(q_{i-1},a)=q_i$.
+- Stay: $\delta(q_i,a)=q_i$.
+
+Every transition not explicitly defined leads to an implicit non-accepting trap state.
+
+The initial state is $q_0$, and the accepting set is $F=\{q_4\}$.
+
+There are 18 explicitly defined transitions: 9 advance transitions and 9 stay transitions.
+
+### Language recognized
+
+$$L(M_{ML}) = G_1^+G_2^+G_3^+G_4^+$$
+
+The recognized sequence must contain at least one qualification from every group, in the prescribed order. Multiple alternatives from the same group are allowed before advancing to the next group.
+
+Since G1 contains only `PYTHON` and G4 contains only `GIT`, every accepted sequence must start with `PYTHON` and end with `GIT`.
+
+### Automaton type: DFA
+
+The automaton is deterministic because each qualification belongs to exactly one category, and the requirement groups are disjoint. No lambda transitions are required.
+
+At each state, a qualification from the current group keeps the automaton in that state, while a qualification from the next group advances it. An unexpected qualification leads to the implicit trap state.
+
+### Transition diagram
+
+Each arrow represents one transition for every qualification listed on it. Missing transitions lead to the implicit non-accepting trap state.
+
+```mermaid
+flowchart LR
+    start(( )) --> q0((q0))
+
+    q0 -->|"PYTHON"| q1((q1))
+    q1 -->|"PYTHON"| q1
+
+    q1 -->|"SQL<br/>POSTGRESQL"| q2((q2))
+    q2 -->|"SQL<br/>POSTGRESQL"| q2
+
+    q2 -->|"PANDAS<br/>NUMPY<br/>SCIKIT_LEARN<br/>TENSORFLOW<br/>PYTORCH"| q3((q3))
+    q3 -->|"PANDAS<br/>NUMPY<br/>SCIKIT_LEARN<br/>TENSORFLOW<br/>PYTORCH"| q3
+
+    q3 -->|"GIT"| q4(((q4)))
+    q4 -->|"GIT"| q4
+
+    style start fill:none,stroke:none
+```
+
+### Examples
+
+| Ordered sequence | Result | Reason |
+|---|---|---|
+| `PYTHON, POSTGRESQL, PANDAS, GIT` | ACCEPTED | All four groups are satisfied in order. |
+| `PYTHON, SQL, NUMPY, TENSORFLOW, GIT` | ACCEPTED | Multiple alternatives from the ML library group are allowed. |
+| `PYTHON, POSTGRESQL, SCIKIT_LEARN, PYTORCH, GIT` | ACCEPTED | The automaton stays in the ML library state before accepting `GIT`. |
+| `PYTHON, PANDAS, POSTGRESQL, GIT` | REJECTED | A database qualification cannot be read after entering the ML library group. |
+| `POSTGRESQL, PANDAS, GIT` | REJECTED | The required language group is missing. |
+| `PYTHON, POSTGRESQL, PANDAS` | REJECTED | The version control group is missing. |
+| `PYTHON, POSTGRESQL, GIT, PANDAS` | REJECTED | The sequence attempts to return to the ML library group after entering VCS. |
