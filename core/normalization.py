@@ -9,7 +9,7 @@ from core.types import ExtractedData, NormalizedQualifications
 
 
 _END_MARKER = "#"
-
+    
 
 def _build_transducer(spellings: dict[str, str]) -> FST:
     """Build one FST using a trie shared by all catalog spellings."""
@@ -51,11 +51,10 @@ def _build_transducer(spellings: dict[str, str]) -> FST:
     return fst
 
 
-def normalize(extracted: ExtractedData) -> NormalizedQualifications:
+
+def normalize(extracted: ExtractedData, catalog: Catalog) -> NormalizedQualifications:
     """Normalize extracted skill candidates into canonical qualifications."""
-    catalog = Catalog.from_json()
-    spellings = catalog.spellings()
-    fst = _build_transducer(spellings)
+    fst = _build_transducer(catalog.spellings())
 
     tokens: list[str] = []
     unrecognized: list[str] = []
