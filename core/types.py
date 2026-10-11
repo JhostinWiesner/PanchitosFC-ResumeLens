@@ -19,6 +19,23 @@ class ExperienceEntry:
     period: str
     bullets: list[str] = field(default_factory=list)
 
+@dataclass(frozen=True)
+class Evaluation:
+    profile_name: str
+    accepted: bool
+    explanation: str
+
+
+@dataclass(frozen=True)
+class CandidateProfile:
+    name: str
+    contact: ContactInfo
+    summary: str
+    experience: list[ExperienceEntry]
+    education: list[str]
+    skills: list[str]
+    evaluations: list[Evaluation]
+
 
 # ---------------------------------------------------------------------------
 # Contracts for the data structures used in the pipeline.
@@ -47,3 +64,15 @@ class OrderedQualifications:
 class ClassificationResult:
     profile_name: str
     accepted: bool
+
+# ---------------------------------------------------------------------------
+# This class is used to return the results of the pipeline in a structured way.
+# ---------------------------------------------------------------------------
+@dataclass(frozen=True)
+class PipelineResult:
+    extracted: ExtractedData
+    normalized: NormalizedQualifications
+    ordered: OrderedQualifications
+    classification: ClassificationResult
+    candidate: CandidateProfile
+    dsl_text: str
