@@ -1,0 +1,51 @@
+CandidateProfile:
+    personal=Personal
+    contact=Contact?
+    ('summary' ':' summary=STRING)?
+    experiences*=Experience
+    educations*=Education
+    ('skills' ':' skills+=SkillName[','])?
+    evaluations+=Evaluation
+;
+
+Personal:
+    'candidate'
+        'name' ':' full_name=STRING
+    'end'
+;
+
+Contact:
+    'contact'
+        ('email' ':' email=Email)?
+        ('phone' ':' phone=STRING)?
+        ('location' ':' location=STRING)?
+        ('linkedin' ':' linkedin=STRING)?
+        ('github' ':' github=STRING)?
+    'end'
+;
+
+Experience:
+    'experience'
+        'title' ':' title=STRING
+        ('organization' ':' organization=STRING)?
+        ('period' ':' period=STRING)?
+        ('bullet' ':' bullets+=STRING)*
+    'end'
+;
+
+Education:
+    'education' ':' text=STRING
+;
+
+Evaluation:
+    'evaluation'
+        'profile' ':' profile=STRING
+        'result' ':' result=Result
+        'explanation' ':' explanation=STRING
+    'end'
+;
+
+Result: 'ACCEPTED' | 'REJECTED';
+
+Email: /[^\s@]+@[^\s@]+\.[^\s@]+/;
+SkillName: /[A-Z0-9]+(_[A-Z0-9]+)*/;
