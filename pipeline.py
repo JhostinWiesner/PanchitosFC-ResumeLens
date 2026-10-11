@@ -1,6 +1,11 @@
 from core.catalog import Catalog
 from core.extraction import extract
-from core.grammar.grammar import build_candidate_profile, parse_candidate, to_dsl
+from core.grammar.grammar import (
+    build_candidate_profile,
+    parse_candidate,
+    render_html,
+    to_dsl,
+)
 from core.normalization import normalize
 from core.ordering import order
 from core.recognition import recognize
@@ -22,8 +27,22 @@ def run(resume_text: str, profile: Profile, catalog: Catalog) -> PipelineResult:
     classification = recognize(ordered, profile, catalog)
 
     # Stage 4: candidate profile language
+   
     candidate = build_candidate_profile(extracted, normalized, classification, profile)
     dsl_text = to_dsl(candidate)
-    parse_candidate(dsl_text)  # raises CandidateSyntaxError if the text breaks the grammar
 
-    return PipelineResult(extracted, normalized, ordered, classification, candidate, dsl_text)
+    # Validate the DSL and obtain the parsed textX model.
+    model = parse_candidate(dsl_text)
+
+    # Render the validated model as HTML.
+    html_output = render_html(model)
+
+    return PipelineResult(
+        extracted,
+        normalized,
+        ordered,
+        classification,
+        candidate,
+        dsl_text,
+        html_output,
+    )

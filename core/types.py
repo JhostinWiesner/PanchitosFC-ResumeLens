@@ -68,6 +68,7 @@ class ClassificationResult:
 # ---------------------------------------------------------------------------
 # This class is used to return the results of the pipeline in a structured way.
 # ---------------------------------------------------------------------------
+
 @dataclass(frozen=True)
 class PipelineResult:
     extracted: ExtractedData
@@ -76,3 +77,4 @@ class PipelineResult:
     classification: ClassificationResult
     candidate: CandidateProfile
     dsl_text: str
+    html_output: str = ""
