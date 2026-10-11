@@ -6,26 +6,27 @@ from core.types import (
 )
 from profiles.base import Profile
 from core.extraction import extract
-from core.normalization import normalize, order
+from core.normalization import normalize
+from core.ordering import order
 from core.recognition import recognize
+from core.catalog import Catalog
 
 
 def run(
     resume_text: str,
-    profile: Profile
+    profile: Profile,
+    catalog: Catalog
 ) -> tuple[ExtractedData, NormalizedQualifications, OrderedQualifications, ClassificationResult]:
     """Execute the full pipeline for a given resume text and profile."""
     
-    # Stage 1: Extraction (Global Regex)
-    extracted: ExtractedData = extract(resume_text)
-    
-    # Stage 2: Normalization (Global FST)
-    normalized: NormalizedQualifications = normalize(extracted)
-    
-    # Stage 3: Ordering (By canonical order of the profile)
-    ordered: OrderedQualifications = order(normalized, profile)
-    
-    # Stage 4: Recognition (Automaton of the profile)
-    classification: ClassificationResult = recognize(ordered, profile)
-    
+    # Stage 1: extraction (global regex)
+    extracted = extract(resume_text)
+
+    # Stage 2: normalization (global FST) and ordering (by the profile's category order)
+    normalized = normalize(extracted, catalog)
+    ordered = order(normalized, profile, catalog)
+
+    # Stage 3: recognition (DFA of the profile)
+    classification = recognize(ordered, profile, catalog)
+
     return extracted, normalized, ordered, classification
