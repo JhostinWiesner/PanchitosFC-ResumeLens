@@ -7,9 +7,9 @@ ResumeLens processes plain-text resumes and determines whether the identified qu
 | Perfil | Responsable |
 |---|---|
 | Full Stack Developer | Jhostin Wiesner |
-| Machine Learning Engineer | Juan Diego Garcés |
+| Machine Learning Engineer | Juan Felipe Correa |
 | DevOps | Juan Felipe Correa |
-| Data Engineer | Juan Felipe Correa |
+| Data Engineer | Juan Diego Garcés |
 
 > All 4 profiles run on **the same generic software solution** — see `profiles/base.py`. No profile has an isolated pipeline implementation.
 
