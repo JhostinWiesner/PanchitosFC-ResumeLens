@@ -113,37 +113,31 @@ For example, `REACT` is associated with `FULL_STACK`, while `DOCKER` and `KUBERN
 
 A technology can belong to several profiles. In those cases, it is kept for each profile authorized by the catalog.
 
-### 5.5. Fixed Category Order
+### 5.5. Profile-Specific Category Order
 
-The order of categories is explicitly defined in the ordering stage. It does not depend on the position of the categories in the JSON file.
+The category order is defined by the selected profile through `profile.canonical_order`. There is no single global category sequence shared by all profiles. Each profile declares the categories that are relevant to its qualification pattern and the order in which they must appear.
 
-The established order is:
+The configured orders are:
 
-1. `LANGUAGE`
-2. `FRONTEND`
-3. `BACKEND`
-4. `DATABASE`
-5. `ML_LIBRARY`
-6. `DATA_PROCESSING`
-7. `WORKFLOW`
-8. `CONTAINER`
-9. `CI_CD`
-10. `IAC`
-11. `CLOUD`
-12. `VCS`
+| Profile | Canonical order |
+|---|---|
+| Full Stack Developer | `LANGUAGE → FRONTEND → BACKEND → DATABASE → VCS` |
+| Machine Learning Engineer | `LANGUAGE → ML_LIBRARY → DATABASE → VCS` |
+| DevOps Engineer | `LANGUAGE → CONTAINER → CI_CD → IAC → CLOUD → VCS` |
+| Data Engineer | `LANGUAGE → DATABASE → DATA_PROCESSING → WORKFLOW → CLOUD → VCS` |
 
-This decision allows the result to remain stable even if the catalog file is reorganized later.
+During ordering, categories that are not included in the selected profile's `canonical_order` are excluded. This keeps the result aligned with the selected profile rather than applying categories that belong to other profiles.
 
 ### 5.6. Order Within Each Category
 
 Technologies belonging to the same category are sorted using `Catalog.position()`.
 
-This function returns the global position of the qualification in the JSON and allows preserving the relative order defined for the technologies in the catalog.
+The ordering stage therefore combines two criteria:
 
-Thus, the ordering combines two criteria:
+1. The category priority specified by the selected profile's `canonical_order`.
+2. The qualification's position in the catalog, which acts as a tie-breaker within a category.
 
-- Fixed category priority.
-- Position of the qualification within the catalog.
+The final sequence is deterministic and does not depend on the order in which the candidate listed the skills.
 
 ## 6. Integration with the Catalog
 
@@ -157,7 +151,7 @@ The stage reuses the following operations from `Catalog`:
 | `catalog.qualifications_for(profile, category)` | Query the qualifications associated with a profile and a category, in the order of the file. |
 | `catalog.categories` | Query the categories in the order of first appearance in the JSON. |
 
-Although the catalog provides these operations, the fixed priority of categories belongs to the ordering stage and remains independent of the JSON order.
+The category priority comes from the selected profile's `canonical_order`, while `Catalog.position()` determines the order of qualifications within each category.
 
 The profile information added to the catalog allows filtering technologies without duplicating eligibility rules in the ordering module.
 
@@ -206,7 +200,7 @@ Unit tests for this stage verify the following scenarios:
 - Filtering of technologies not allowed for the profile.
 - Technologies shared among multiple profiles.
 - Profiles with no matching qualifications.
-- Fixed category order.
+- Profile-specific category order.
 - Order by position within each category.
 - Independence of the result from the initial input order.
 - Elimination of canonical duplicates.
@@ -225,7 +219,7 @@ The main design decisions adopted are:
 2. Use the catalog as the source of truth for qualifications, their categories, and their profiles.
 3. Receive the profile selected by the user from the frontend, without establishing a default profile.
 4. Eliminate canonical duplicates during ordering, not during normalization.
-5. Define a fixed category order independent of the JSON.
+5. Use the category order declared by the selected profile through `profile.canonical_order`.
 6. Use the catalog position to sort technologies within each category.
 7. Use custom and explicit errors to detect invalid profiles and non-existent qualifications.
 8. Preserve the original input and unrecognized terms.
@@ -238,3 +232,68 @@ The stage delivers a list of canonical qualifications that is unique, filtered b
 This output establishes a clear contract for the next phase of ResumeLens, which will be able to work with a consistent technology sequence specific to the requested profile.
 
 The implementation of ordering does not replace or modify the FST of Stage 2, and it does not implement the recognition using automata of Stage 3. Each stage maintains its own responsibility within the pipeline.
+
+---
+
+## 12. Canonical Category Order and Profile Examples
+
+
+| Profile | Canonical order |
+|---|---|
+| Full Stack Developer | `LANGUAGE → FRONTEND → BACKEND → DATABASE → VCS` |
+| Machine Learning Engineer | `LANGUAGE → ML_LIBRARY → DATABASE → VCS` |
+| DevOps Engineer | `LANGUAGE → CONTAINER → CI_CD → IAC → CLOUD → VCS` |
+| Data Engineer | `LANGUAGE → DATABASE → DATA_PROCESSING → WORKFLOW → CLOUD → VCS` |
+
+Team convention: `LANGUAGE` first and `VCS` always last.
+
+#### Qualifications by profile and category
+
+**Full Stack Developer**
+- `LANGUAGE`: JAVASCRIPT, TYPESCRIPT, JAVA, PYTHON
+- `FRONTEND`: REACT, ANGULAR, VUE
+- `BACKEND`: NODE_JS, DJANGO, SPRING_BOOT, REST_API
+- `DATABASE`: SQL, POSTGRESQL, MONGODB
+- `VCS`: GIT
+
+**Machine Learning Engineer**
+- `LANGUAGE`: PYTHON
+- `ML_LIBRARY`: PANDAS, NUMPY, SCIKIT_LEARN, TENSORFLOW, PYTORCH
+- `DATABASE`: SQL, POSTGRESQL
+- `VCS`: GIT
+
+**DevOps Engineer**
+- `LANGUAGE`: PYTHON, BASH, GO
+- `CONTAINER`: DOCKER, KUBERNETES
+- `CI_CD`: JENKINS, GITHUB_ACTIONS, GITLAB_CI
+- `IAC`: TERRAFORM, ANSIBLE
+- `CLOUD`: AWS, GCP, AZURE
+- `VCS`: GIT
+
+**Data Engineer**
+- `LANGUAGE`: PYTHON
+- `DATABASE`: SQL, POSTGRESQL, MONGODB, MYSQL, SNOWFLAKE
+- `DATA_PROCESSING`: SPARK, KAFKA, HADOOP, DBT
+- `WORKFLOW`: AIRFLOW
+- `CLOUD`: AWS, GCP, AZURE
+- `VCS`: GIT
+
+---
+
+### 4. Ordering rules (`order()`)
+
+1. **Tie-breaking within a category:** the order in which qualifications appear in the global catalog (section 2) is used, not the order in which the candidate wrote them.
+2. **Categories not used by the profile:** `order()` **ignores** them for that profile. ResumeLens evaluates whether a pattern is met; it does not penalize the candidate for having other skills. ### Examples
+
+The catalog query `qualifications_for(profile, category)` returns each group `G_i` in file order. The ordering stage uses this same query to filter qualifications before applying the profile's category order.
+
+#### Examples
+
+| Profile       | Input                                                      | Sorted Output                                             |
+|---------------|------------------------------------------------------------|-----------------------------------------------------------|
+| Full Stack    | `Git, NodeJS, JS, Postgres, React.js`                      | `JAVASCRIPT, REACT, NODE_JS, POSTGRESQL, GIT`             |
+| ML Engineer   | `Git, PostgreSQL, TensorFlow, Pandas, Python`              | `PYTHON, PANDAS, TENSORFLOW, POSTGRESQL, GIT`             |
+| DevOps        | `Terraform, Git, Docker, AWS, Python, Jenkins, Kubernetes` | `PYTHON, DOCKER, KUBERNETES, JENKINS, TERRAFORM, AWS, GIT` |
+| Data Engineer | `Airflow, Git, Spark, PostgreSQL, Python, AWS`             | `PYTHON, POSTGRESQL, SPARK, AIRFLOW, AWS, GIT`            |
+
+---
