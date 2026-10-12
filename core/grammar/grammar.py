@@ -6,7 +6,6 @@ from textx import metamodel_from_file
 from textx.exceptions import TextXError
 
 
-
 from core.types import (
     CandidateProfile,
     ClassificationResult,
@@ -17,6 +16,7 @@ from core.types import (
     OrderedQualifications,
 )
 from profiles.base import Profile
+
 
 class CandidateSyntaxError(ValueError):
     """The text does not follow the candidate profile language."""
@@ -53,8 +53,10 @@ def _text(value: str) -> str:
     """Write free text as a quoted STRING. Only double quotes need escaping."""
     return '"' + value.replace('"', '\\"') + '"'
 
+
 def _personal_block(name: str) -> str:
     return f"candidate\n    name: {_text(name)}\nend"
+
 
 def _contact_block(contact: ContactInfo) -> str:
     lines = []
@@ -66,8 +68,10 @@ def _contact_block(contact: ContactInfo) -> str:
             lines.append(f"    {field}: {_text(value)}")
     return ("contact\n" + "\n".join(lines) + "\nend") if lines else ""
 
+
 def _summary_block(summary: str) -> str:
     return f"summary: {_text(summary)}" if summary else ""
+
 
 def _experience_block(entry: ExperienceEntry) -> str:
     lines = [f"    title: {_text(entry.title)}"]
@@ -78,11 +82,14 @@ def _experience_block(entry: ExperienceEntry) -> str:
     lines += [f"    bullet: {_text(bullet)}" for bullet in entry.bullets]
     return "experience\n" + "\n".join(lines) + "\nend"
 
+
 def _education_block(education: list[str]) -> str:
     return "\n".join(f"education: {_text(item)}" for item in education)
 
+
 def _skills_block(skills: list[str]) -> str:
     return "skills: " + ", ".join(skills) if skills else ""
+
 
 def _evaluation_block(evaluation: Evaluation) -> str:
     result = "ACCEPTED" if evaluation.accepted else "REJECTED"
@@ -108,6 +115,7 @@ def to_dsl(candidate: CandidateProfile) -> str:
     ]
     return "\n\n".join(block for block in blocks if block) + "\n"
 
+
 def parse_candidate(dsl_text: str):
     """Validate the text against the grammar and return the textX model."""
     try:
@@ -127,17 +135,21 @@ def render_html(model) -> str:
             return ""
         return f"<p><strong>{esc(label)}:</strong> {esc(value)}</p>"
 
+    name = esc(model.personal.full_name) or "Name not detected"
+
     contact = model.contact
     contact_html = ""
 
     if contact:
-        contact_html = "".join([
-            optional_contact("Email", contact.email),
-            optional_contact("Phone", contact.phone),
-            optional_contact("Location", contact.location),
-            optional_contact("LinkedIn", contact.linkedin),
-            optional_contact("GitHub", contact.github),
-        ])
+        contact_html = "".join(
+            [
+                optional_contact("Email", contact.email),
+                optional_contact("Phone", contact.phone),
+                optional_contact("Location", contact.location),
+                optional_contact("LinkedIn", contact.linkedin),
+                optional_contact("GitHub", contact.github),
+            ]
+        )
 
     summary_html = ""
     if model.summary:
@@ -159,13 +171,10 @@ def render_html(model) -> str:
                 if value
             )
 
-            metadata_html = (
-                f'<p class="metadata">{metadata}</p>' if metadata else ""
-            )
+            metadata_html = f'<p class="metadata">{metadata}</p>' if metadata else ""
 
             bullets_html = "".join(
-                f"<li>{esc(bullet)}</li>"
-                for bullet in experience.bullets
+                f"<li>{esc(bullet)}</li>" for bullet in experience.bullets
             )
 
             entries.append(f"""
@@ -186,8 +195,7 @@ def render_html(model) -> str:
     education_html = ""
     if model.educations:
         education_items = "".join(
-            f"<li>{esc(item.text)}</li>"
-            for item in model.educations
+            f"<li>{esc(item.text)}</li>" for item in model.educations
         )
         education_html = f"""
         <div class="section">
@@ -199,8 +207,7 @@ def render_html(model) -> str:
     skills_html = ""
     if model.skills:
         skill_items = "".join(
-            f'<span class="skill">{esc(skill)}</span>'
-            for skill in model.skills
+            f'<span class="skill">{esc(skill)}</span>' for skill in model.skills
         )
         skills_html = f"""
         <div class="section">
@@ -241,83 +248,82 @@ def render_html(model) -> str:
         """
 
     return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ResumeLens - Candidate Profile</title>
-    <style>
-        body {{
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 40px;
-            color: #222;
-        }}
-        .candidate-card {{
-            box-sizing: border-box;
-            max-width: 850px;
-            margin: auto;
-            background-color: white;
-            border: 1px solid #cccccc;
-            border-radius: 10px;
-            padding: 30px;
-        }}
-        .header {{
-            border-bottom: 2px solid #333333;
-            margin-bottom: 25px;
-        }}
-        .header h1 {{ margin-bottom: 5px; }}
-        .header p {{ margin-top: 0; }}
-        .section {{ margin-bottom: 25px; }}
-        .section h2 {{
-            border-bottom: 1px solid #dddddd;
-            padding-bottom: 5px;
-        }}
-        .skills {{
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }}
-        .skill {{
-            background-color: #eeeeee;
-            border-radius: 5px;
-            padding: 8px 12px;
-        }}
-        .evaluation {{
-            background-color: #eeeeee;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-        }}
-        .accepted {{ font-weight: bold; color: #18733c; }}
-        .rejected {{ font-weight: bold; color: #b42318; }}
-        .metadata {{ font-size: 0.9em; color: #555; }}
-        @media (max-width: 600px) {{
-            body {{ padding: 12px; }}
-            .candidate-card {{ padding: 18px; }}
-        }}
-    </style>
-</head>
-<body>
-    <div class="candidate-card">
-        <div class="header">
-            <h1>{esc(model.personal.full_name)}</h1>
-            <p>Candidate Profile generated by ResumeLens</p>
-        </div>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>ResumeLens - {name}</title>
+                    <style>
+                        body {{
+                            font-family: Arial, sans-serif;
+                            background-color: #f4f4f4;
+                            margin: 0;
+                            padding: 40px;
+                            color: #222;
+                        }}
+                        .candidate-card {{
+                            box-sizing: border-box;
+                            max-width: 850px;
+                            margin: auto;
+                            background-color: white;
+                            border: 1px solid #cccccc;
+                            border-radius: 10px;
+                            padding: 30px;
+                        }}
+                        .header {{
+                            border-bottom: 2px solid #333333;
+                            margin-bottom: 25px;
+                        }}
+                        .header h1 {{ margin-bottom: 5px; }}
+                        .header p {{ margin-top: 0; }}
+                        .section {{ margin-bottom: 25px; }}
+                        .section h2 {{
+                            border-bottom: 1px solid #dddddd;
+                            padding-bottom: 5px;
+                        }}
+                        .skills {{
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 10px;
+                        }}
+                        .skill {{
+                            background-color: #eeeeee;
+                            border-radius: 5px;
+                            padding: 8px 12px;
+                        }}
+                        .evaluation {{
+                            background-color: #eeeeee;
+                            padding: 20px;
+                            border-radius: 8px;
+                            margin-bottom: 12px;
+                        }}
+                        .accepted {{ font-weight: bold; color: #18733c; }}
+                        .rejected {{ font-weight: bold; color: #b42318; }}
+                        .metadata {{ font-size: 0.9em; color: #555; }}
+                        @media (max-width: 600px) {{
+                            body {{ padding: 12px; }}
+                            .candidate-card {{ padding: 18px; }}
+                        }}
+                    </style>
+                </head>
+                <body>
+                    <div class="candidate-card">
+                        <div class="header">
+                            <h1>{name}</h1>
+                            <p>Candidate Profile generated by ResumeLens</p>
+                        </div>
 
-        <div class="section">
-            <h2>Personal Information</h2>
-            {contact_html or "<p>No contact information available.</p>"}
-        </div>
+                        <div class="section">
+                            <h2>Personal Information</h2>
+                            {contact_html or "<p>No contact information available.</p>"}
+                        </div>
 
-        {summary_html}
-        {experience_html}
-        {education_html}
-        {skills_html}
-        {evaluations_html}
-    </div>
-</body>
-</html>
-"""
-
+                        {summary_html}
+                        {experience_html}
+                        {education_html}
+                        {skills_html}
+                        {evaluations_html}
+                    </div>
+                </body>
+                </html>
+                """
