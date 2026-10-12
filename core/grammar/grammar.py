@@ -25,9 +25,13 @@ class CandidateSyntaxError(ValueError):
 _METAMODEL = metamodel_from_file(str(Path(__file__).with_name("candidate.tx")))
 
 
-def build_candidate_profile(extracted: ExtractedData, normalized: NormalizedQualifications,
+def build_candidate_profile(
+    extracted: ExtractedData,
+    normalized: NormalizedQualifications,
     classification: ClassificationResult,
-    profile: Profile) -> CandidateProfile:
+    profile: Profile,
+    ordered: list[str],
+) -> CandidateProfile:
     """Join the results of the previous stages into one candidate profile."""
     return CandidateProfile(
         name=extracted.name,
@@ -35,7 +39,7 @@ def build_candidate_profile(extracted: ExtractedData, normalized: NormalizedQual
         summary=extracted.summary,
         experience=extracted.experience,
         education=extracted.education,
-        skills=list(dict.fromkeys(normalized.tokens)),  # recognized skills, no repeats
+        skills=list(ordered),
         evaluations=[
             Evaluation(
                 profile_name=profile.name,

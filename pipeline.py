@@ -28,7 +28,13 @@ def run(resume_text: str, profile: Profile, catalog: Catalog) -> PipelineResult:
 
     # Stage 4: candidate profile language
    
-    candidate = build_candidate_profile(extracted, normalized, classification, profile)
+    candidate = build_candidate_profile(
+    extracted,
+    normalized,
+    classification,
+    profile,
+    ordered.sequence,
+)
     dsl_text = to_dsl(candidate)
 
     # Validate the DSL and obtain the parsed textX model.
