@@ -1,0 +1,19 @@
+Santiago Moreno
+santiago.moreno@example.com
+Pereira, Colombia
+
+Professional Summary
+Estudiante de ingeniería interesado en machine learning y análisis de datos.
+
+Professional Experience
+Practicante de analítica | Laboratorio Demo | 2024-2025
+- Entrenamiento de modelos con Python y scikit-learn.
+- Manipulación de datos con pandas y NumPy.
+- Evaluación de modelos y preparación de experimentos.
+- Consultas en PostgreSQL y seguimiento de código con Git.
+
+Education
+Ingeniería de Sistemas | Universidad Demo | 2021-2025
+
+Technical Skills
+Python, Scikit-Learn, pandas, NumPy, PostgreSQL, Git, Machine Learning
