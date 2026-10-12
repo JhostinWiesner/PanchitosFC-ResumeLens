@@ -1,0 +1,18 @@
+Valentina Rojas
+valentina.rojas@example.com
+Cali, Colombia
+
+Professional Summary
+Desarrolladora junior con interés en aprender nuevas herramientas de software.
+
+Professional Experience
+Asistente de desarrollo | Proyecto Demo | 2023-2025
+- Desarrollo de pequeños scripts en Python.
+- Apoyo en documentación y pruebas manuales.
+- Exploración de una herramienta interna llamada NebulaForge.
+
+Education
+Tecnología en Desarrollo de Software | Instituto Demo | 2021-2023
+
+Technical Skills
+Python, Git, NebulaForge, Rust, tecnologia_inventada, PythonX
