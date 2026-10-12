@@ -16,7 +16,7 @@ from core.types import (
     Evaluation,
     ExperienceEntry,
     ExtractedData,
-    NormalizedQualifications,
+    OrderedQualifications
 )
 from profiles.base import Profile
 
@@ -406,13 +406,13 @@ def test_building_candidate_profile(accepted):
             )
         ],
     )
-    normalized = NormalizedQualifications(
-        tokens=["JAVASCRIPT", "REACT", "JAVASCRIPT", "GIT"],
-        unrecognized=[],
+    ordered = OrderedQualifications(
+        profile_name=profile.name,
+        sequence=["JAVASCRIPT", "REACT", "GIT"],
     )
     classification = ClassificationResult(profile.name, accepted)
 
-    candidate = build_candidate_profile(extracted, normalized, classification, profile)
+    candidate = build_candidate_profile(extracted, ordered, classification, profile)
 
     assert candidate.name == extracted.name, "Candidate name was not preserved"
     assert candidate.contact == extracted.contact, "Contact information was not preserved"

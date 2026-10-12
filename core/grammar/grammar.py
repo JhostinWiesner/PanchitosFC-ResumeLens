@@ -13,7 +13,7 @@ from core.types import (
     ExperienceEntry,
     Evaluation,
     ExtractedData,
-    NormalizedQualifications,
+    OrderedQualifications,
 )
 from profiles.base import Profile
 
@@ -27,7 +27,7 @@ _METAMODEL = metamodel_from_file(str(Path(__file__).with_name("candidate.tx")))
 
 def build_candidate_profile(
     extracted: ExtractedData,
-    normalized: NormalizedQualifications,
+    ordered: OrderedQualifications,
     classification: ClassificationResult,
     profile: Profile,
 ) -> CandidateProfile:
@@ -38,7 +38,7 @@ def build_candidate_profile(
         summary=extracted.summary,
         experience=extracted.experience,
         education=extracted.education,
-        skills=list(dict.fromkeys(normalized.tokens)),  # recognized skills, no repeats
+        skills=ordered.sequence,
         evaluations=[
             Evaluation(
                 profile_name=profile.name,
