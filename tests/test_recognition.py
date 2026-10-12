@@ -4,6 +4,7 @@ from core.catalog import Catalog
 from core.recognition import build_automaton, recognize
 from core.types import OrderedQualifications
 from profiles.base import Profile
+from profiles.data_engineer import DATA_ENGINEER
 from profiles.full_stack import FULL_STACK
 
 
@@ -19,11 +20,7 @@ PROFILES = {
         "DevOps Engineer",
         ("LANGUAGE", "CONTAINER", "CI_CD", "IAC", "CLOUD", "VCS"),
     ),
-    "DATA_ENGINEER": Profile(
-        "DATA_ENGINEER",
-        "Data Engineer",
-        ("LANGUAGE", "DATABASE", "DATA_PROCESSING", "WORKFLOW", "CLOUD", "VCS"),
-    ),
+    "DATA_ENGINEER": DATA_ENGINEER,
 }
 
 MISSING_CASES = [
@@ -48,6 +45,19 @@ def accepted(
 ) -> bool:
     ordered = OrderedQualifications(profile.name, symbols)
     return recognize(ordered, profile, catalog).accepted
+
+
+def test_data_engineer_profile_configuration():
+    assert DATA_ENGINEER.identifier == "DATA_ENGINEER"
+    assert DATA_ENGINEER.name == "Data Engineer"
+    assert DATA_ENGINEER.canonical_order == (
+        "LANGUAGE",
+        "DATABASE",
+        "DATA_PROCESSING",
+        "WORKFLOW",
+        "CLOUD",
+        "VCS",
+    )
 
 
 def test_dfa_structure(catalog, profiles):

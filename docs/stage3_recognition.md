@@ -283,3 +283,86 @@ flowchart LR
 | `POSTGRESQL, PANDAS, GIT` | REJECTED | The required language group is missing. |
 | `PYTHON, POSTGRESQL, PANDAS` | REJECTED | The version control group is missing. |
 | `PYTHON, POSTGRESQL, GIT, PANDAS` | REJECTED | The sequence attempts to return to the ML library group after entering VCS. |
+
+---
+
+## Data Engineer Automaton
+
+### Input assumption
+
+The input is the sequence produced by the ordering stage for the Data Engineer profile. The ordering stage keeps qualifications assigned to `DATA_ENGINEER` and sorts them by:
+
+`LANGUAGE → DATABASE → DATA_PROCESSING → WORKFLOW → CLOUD → VCS`.
+
+The profile configuration supplies this category order. The catalog supplies the qualifications in each category. The generic ordering and recognition implementations use both; Data Engineer does not have a separate DFA implementation.
+
+### Pattern
+
+A résumé is accepted when its ordered sequence contains at least one qualification from each group, in order.
+
+| Group | Category | Symbols |
+|---|---|---|
+| G1 | `LANGUAGE` | `PYTHON` |
+| G2 | `DATABASE` | `SQL`, `POSTGRESQL`, `MONGODB`, `MYSQL`, `SNOWFLAKE` |
+| G3 | `DATA_PROCESSING` | `SPARK`, `KAFKA`, `HADOOP`, `DBT` |
+| G4 | `WORKFLOW` | `AIRFLOW` |
+| G5 | `CLOUD` | `AWS`, `GCP`, `AZURE` |
+| G6 | `VCS` | `GIT` |
+
+### Formal definition
+
+$$M_{DATA\_ENGINEER} = (Q, \Sigma, \delta, q_0, F)$$
+
+- $Q = \{q_0,q_1,q_2,q_3,q_4,q_5,q_6\}$.
+  - $q_0$: no requirement group has been satisfied.
+  - $q_i$, for $1 \le i \le 5$: the first $i$ groups have been satisfied.
+  - $q_6$: all six groups have been satisfied.
+- $\Sigma = G_1 \cup G_2 \cup G_3 \cup G_4 \cup G_5 \cup G_6$ (15 catalog qualifications listed above).
+- For each $i \in \{1,\ldots,6\}$ and each $a \in G_i$:
+  - advance: $\delta(q_{i-1},a)=q_i$;
+  - stay: $\delta(q_i,a)=q_i$.
+- $q_0$ is the initial state.
+- $F = \{q_6\}$.
+
+The implementation defines 30 transitions: 15 advance transitions and 15 stay transitions. Only these transitions are defined. An input with no transition is rejected; the implementation does not construct an explicit trap state.
+
+### Language recognized
+
+$$L(M_{DATA\_ENGINEER}) = G_1^+G_2^+G_3^+G_4^+G_5^+G_6^+$$
+
+Each category is required, and qualifications may repeat while the automaton is in that category's state. Skipping a category or returning to an earlier category is rejected.
+
+### Automaton type: DFA
+
+The catalog assigns each qualification to one category, so the groups are disjoint. At each state, the current group's symbols stay in that state, while the next group's symbols advance to the next state. These transitions cannot conflict, so the automaton is deterministic.
+
+### Transition diagram
+
+The generic builder creates one advance transition and one stay transition for each catalog qualification in its category. Any unshown transition is undefined and causes rejection.
+
+```mermaid
+flowchart LR
+    start(( )) --> q0((q0))
+    q0 -->|"PYTHON"| q1((q1))
+    q1 -->|"PYTHON"| q1
+    q1 -->|"SQL<br/>POSTGRESQL<br/>MONGODB<br/>MYSQL<br/>SNOWFLAKE"| q2((q2))
+    q2 -->|"SQL<br/>POSTGRESQL<br/>MONGODB<br/>MYSQL<br/>SNOWFLAKE"| q2
+    q2 -->|"SPARK<br/>KAFKA<br/>HADOOP<br/>DBT"| q3((q3))
+    q3 -->|"SPARK<br/>KAFKA<br/>HADOOP<br/>DBT"| q3
+    q3 -->|"AIRFLOW"| q4((q4))
+    q4 -->|"AIRFLOW"| q4
+    q4 -->|"AWS<br/>GCP<br/>AZURE"| q5((q5))
+    q5 -->|"AWS<br/>GCP<br/>AZURE"| q5
+    q5 -->|"GIT"| q6(((q6)))
+    q6 -->|"GIT"| q6
+    style start fill:none,stroke:none
+```
+
+### Examples
+
+| Ordered sequence | Result | Reason |
+|---|---|---|
+| `PYTHON, POSTGRESQL, SPARK, AIRFLOW, AWS, GIT` | ACCEPTED | One qualification from each group, in order; this is the existing TC-08 sequence. |
+| `PYTHON, POSTGRESQL, MYSQL, SPARK, DBT, AIRFLOW, AWS, GCP, GIT` | ACCEPTED | Repeated qualifications use stay transitions within their current group. |
+| `PYTHON, SPARK, POSTGRESQL, AIRFLOW, AWS, GIT` | REJECTED | Database appears after Data Processing; no transition is defined for it from that state. |
+| `PYTHON, POSTGRESQL, SPARK, AIRFLOW, GIT` | REJECTED | Cloud is missing; there is no transition from the Workflow state directly to VCS. |
