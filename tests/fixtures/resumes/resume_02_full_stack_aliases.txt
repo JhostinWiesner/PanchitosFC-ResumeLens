@@ -1,0 +1,20 @@
+María Fernanda López
+maria.lopez@example.com
+Cali, Colombia
+LinkedIn: https://www.linkedin.com/in/maria-lopez
+
+Professional Summary
+Desarrolladora Full Stack enfocada en aplicaciones web modernas y APIs.
+
+Professional Experience
+Desarrolladora de software | Tech Demo | 2022-2025
+- Construcción de interfaces con React.js, JavaScript y TypeScript.
+- Desarrollo de servicios backend con Node.js y Express.
+- Diseño de APIs REST y persistencia con PostgreSQL.
+- Uso de Git para control de versiones.
+
+Education
+Ingeniería de Sistemas | Universidad Demo | 2018-2022
+
+Technical Skills
+JS, React.JS, Type Script, Node JS, Express.js, Postgre SQL, REST API, Git

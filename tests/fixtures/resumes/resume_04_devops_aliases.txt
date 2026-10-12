@@ -1,0 +1,20 @@
+Camila Torres
+camila.torres@example.com
+Medellín, Colombia
+
+Professional Summary
+Profesional junior interesado en automatización, infraestructura y despliegues confiables.
+
+Professional Experience
+DevOps Intern | Cloud Demo | 2024-2025
+- Empaquetado de aplicaciones con Docker.
+- Administración básica de Kubernetes (K8s).
+- Automatización de integración continua con Jenkins.
+- Aprovisionamiento de infraestructura como código con Terraform.
+- Uso de AWS y Git.
+
+Education
+Ingeniería de Sistemas | Universidad Demo | 2020-2024
+
+Technical Skills
+Bash, Docker, K8s, Jenkins, Terraform, AWS, Git, Linux

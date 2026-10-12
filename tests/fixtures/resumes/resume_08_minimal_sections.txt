@@ -1,0 +1,6 @@
+Luis Eduardo Gómez
+luis.gomez@example.com
+
+Desarrollador backend junior. Ha creado servicios sencillos con Python y APIs REST para proyectos universitarios.
+
+Skills: Python, FastAPI, PostgreSQL, Git.

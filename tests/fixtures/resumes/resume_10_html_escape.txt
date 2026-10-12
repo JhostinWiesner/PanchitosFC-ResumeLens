@@ -1,0 +1,19 @@
+<script>alert('xss')</script>
+Oscar <b>Ramírez</b>
+oscar.ramirez@example.com
+Cali, Colombia
+
+Professional Summary
+Desarrollador con conocimientos en Python y JavaScript. Este documento incluye texto con caracteres que deben mostrarse como texto y no ejecutarse como HTML.
+
+Professional Experience
+Desarrollador junior | Demo & Asociados | 2024-2026
+- Creación de scripts con Python.
+- Desarrollo de interfaces web con JavaScript.
+- Uso de Git para control de versiones.
+
+Education
+Ingeniería de Sistemas | Universidad Demo | 2020-2024
+
+Technical Skills
+Python, JavaScript, Git

@@ -1,0 +1,19 @@
+Daniela Castro
+daniela.castro@example.com
+Barranquilla, Colombia
+
+Professional Summary
+Desarrolladora web con experiencia en proyectos académicos.
+
+Professional Experience
+Desarrolladora web | Web Demo | 2022-2025
+- Creación de interfaces con JavaScript y React.
+- Desarrollo de componentes en React.js.
+- Uso de JavaScript para validaciones del lado del cliente.
+- Gestión de código mediante Git.
+
+Education
+Ingeniería de Software | Universidad Demo | 2018-2022
+
+Technical Skills
+JavaScript, JS, React, React.JS, HTML, CSS, Git, Git

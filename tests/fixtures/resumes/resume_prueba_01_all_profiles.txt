@@ -1,0 +1,27 @@
+Alexandra Martínez
+alexandra.martinez@example.com
++57 310 555 0198
+Cali, Colombia
+LinkedIn: https://www.linkedin.com/in/alexandra-martinez
+GitHub: https://github.com/alexandramartinez
+
+Professional Summary
+Ingeniera de sistemas con experiencia en desarrollo de software, análisis de datos, automatización de infraestructura y aprendizaje automático. Ha participado en proyectos académicos que integran aplicaciones web, bases de datos, procesamiento de datos y despliegues reproducibles.
+
+Professional Experience
+Software Engineer | Proyecto Integral Demo | 2023-2026
+- Desarrollo de aplicaciones con Python, JavaScript, React y Node.js.
+- Diseño y consulta de bases de datos PostgreSQL.
+- Procesamiento de datos con pandas y NumPy.
+- Construcción de flujos de datos con Apache Airflow.
+- Entrenamiento de modelos básicos con scikit-learn.
+- Empaquetado de servicios con Docker y administración de Kubernetes.
+- Automatización de integración continua con Jenkins.
+- Aprovisionamiento de infraestructura con Terraform y servicios en AWS.
+- Control de versiones con Git.
+
+Education
+Ingeniería de Sistemas | Universidad Demo | 2022-2026
+
+Technical Skills
+Python, JavaScript, React, Node.js, PostgreSQL, pandas, NumPy, Apache Airflow, scikit-learn, Docker, Kubernetes, Jenkins, Terraform, AWS, Git

@@ -1,0 +1,19 @@
+Andrés Felipe Ramírez
+andres.ramirez@example.com
+Bogotá, Colombia
+
+Professional Summary
+Ingeniero de datos con experiencia académica en procesamiento y orquestación de datos.
+
+Professional Experience
+Data Engineer | Datos Demo | 2023-2026
+- Construcción de procesos ETL con Python y Apache Spark.
+- Orquestación de flujos de trabajo con Apache Airflow.
+- Consultas y modelado de datos en PostgreSQL.
+- Despliegue de cargas en Google Cloud Platform.
+
+Education
+Ingeniería Informática | Universidad Demo | 2019-2023
+
+Technical Skills
+Python, Apache Spark, PySpark, Airflow, PostgreSQL, Google Cloud Platform, Git, SQL
