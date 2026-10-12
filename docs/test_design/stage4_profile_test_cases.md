@@ -26,9 +26,6 @@
 | TC-G22 | Quote in free text survives | A bullet that contains a double quote | After the round trip the bullet equals the original |
 | TC-G23 | Every catalog name is a valid skill | A `skills:` list with every canonical name of the catalog | Accepted |
 | TC-G24 | Building the candidate profile | `build_candidate_profile` with repeated tokens and an accepted classification | Skills without repeats in order of first appearance; one evaluation with the profile name, the result, and the profile's explanation |
-| TC-G25 | The HTML shows the key data | `render_html` of the TC-G02 model | Contains the name, the skill names, and ACCEPTED |
-| TC-G26 | The HTML escapes text | A bullet `<script>alert(1)</script>` | The HTML contains `&lt;script&gt;` and no literal `<script>` from the bullet |
-| TC-G27 | The HTML for a rejected candidate | A model with the result REJECTED | Contains REJECTED |
-| TC-G28 | Multi-line free text | A candidate whose summary has two lines (a line break inside the text) | After the round trip the summary equals the original |
-| TC-G29 | Non-ASCII characters | A candidate whose name and location contain accents and ñ (for example "José Núñez", "Bogotá, Colombia") | After the round trip the values equal the original |
-| TC-G30 | Email forms | Emails such as `a@b.co` and `first.last+tag@mail.example.com` in the contact | Accepted, and the email is preserved |
+| TC-G25 | Multi-line free text | A candidate whose summary has two lines (a line break inside the text) | After the round trip the summary equals the original |
+| TC-G26 | Non-ASCII characters | A candidate whose name and location contain accents and ñ (for example "José Núñez", "Bogotá, Colombia") | After the round trip the values equal the original |
+| TC-G27 | Email forms | Emails such as `a@b.co` and `first.last+tag@mail.example.com` in the contact | Accepted, and the email is preserved |

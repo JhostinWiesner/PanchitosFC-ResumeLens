@@ -1,4 +1,3 @@
-
 """Stage 1: permissive résumé extraction using Python's re module.
 
 This module captures candidate information as written. It does not canonicalize
@@ -10,7 +9,6 @@ from __future__ import annotations
 import re
 
 from core.types import ContactInfo, ExperienceEntry, ExtractedData
-
 
 SECTION_PATTERNS: dict[str, str] = {
     "summary": (
@@ -58,8 +56,7 @@ GITHUB = re.compile(
 )
 
 LOCATION_LABELED = re.compile(
-    r"(?im)^[ \t]*(?:location|based[ \t]+in|address)[ \t]*:"
-    r"[ \t]*(.+?)[ \t]*$"
+    r"(?im)^[ \t]*(?:location|based[ \t]+in|address)[ \t]*:" r"[ \t]*(.+?)[ \t]*$"
 )
 
 LOCATION_INLINE = re.compile(
@@ -84,8 +81,7 @@ PERIOD = re.compile(
 )
 
 ORG_PERIOD_LINE = re.compile(
-    r"^[ \t]*(?P<organization>[^|·]+?)[ \t]*[|·][ \t]*"
-    r"(?P<period>.+?)[ \t]*$"
+    r"^[ \t]*(?P<organization>[^|·]+?)[ \t]*[|·][ \t]*" r"(?P<period>.+?)[ \t]*$"
 )
 
 _EDGE_PUNCTUATION = ' \t\r\n,;:!?()[]{}"“”‘’'
@@ -137,7 +133,7 @@ def _first_section_start(text: str) -> int:
 
 def _extract_name(text: str) -> str:
     """Find a plausible 2–4-word name near the beginning of the résumé."""
-    header = text[:_first_section_start(text)]
+    header = text[: _first_section_start(text)]
 
     for line in header.splitlines()[:5]:
         candidate = line.strip()
@@ -186,7 +182,7 @@ def _extract_contact(text: str) -> ContactInfo:
     if labeled_location:
         location = _clean_edge_punctuation(labeled_location.group(1)) or None
     else:
-        header = text[:_first_section_start(text)]
+        header = text[: _first_section_start(text)]
 
         for line in header.splitlines():
             candidate = line.strip()
@@ -202,11 +198,13 @@ def _extract_contact(text: str) -> ContactInfo:
         location=location,
         linkedin=(
             linkedin_match.group(0).rstrip(_URL_TRAILING_PUNCTUATION)
-            if linkedin_match else None
+            if linkedin_match
+            else None
         ),
         github=(
             github_match.group(0).rstrip(_URL_TRAILING_PUNCTUATION)
-            if github_match else None
+            if github_match
+            else None
         ),
     )
 
@@ -232,7 +230,7 @@ def _extract_summary(text: str, name: str) -> str:
         return explicit_summary.strip()
 
     # Fallback: capture free text after the name and before the first section.
-    header = text[:_first_section_start(text)]
+    header = text[: _first_section_start(text)]
     lines = header.splitlines()
     name_line_index = None
 
@@ -257,7 +255,7 @@ def _extract_summary(text: str, name: str) -> str:
 
     kept: list[str] = []
 
-    for line in lines[name_line_index + 1:]:
+    for line in lines[name_line_index + 1 :]:
         candidate = line.strip()
 
         if not candidate:
@@ -328,8 +326,8 @@ def _experience_entry_from_anchor(
         title_index = anchor_index - 2
         organization = _clean_edge_punctuation(lines[anchor_index - 1])
     else:
-        before_period = date_line[:period_match.start()]
-        after_period = date_line[period_match.end():]
+        before_period = date_line[: period_match.start()]
+        after_period = date_line[period_match.end() :]
         organization = _clean_edge_punctuation(before_period.strip(" |·—–-"))
 
         if not organization and after_period.strip():
@@ -346,7 +344,7 @@ def _experience_entry_from_anchor(
     period = _clean_edge_punctuation(period_match.group(0))
     bullets: list[str] = []
 
-    for line in lines[anchor_index + 1:next_anchor]:
+    for line in lines[anchor_index + 1 : next_anchor]:
         bullet_match = BULLET_LINE.fullmatch(line)
 
         if bullet_match:
@@ -387,9 +385,7 @@ def _extract_experience(section: str | None) -> list[ExperienceEntry]:
 
         for position, anchor_index in enumerate(anchors):
             next_anchor = (
-                anchors[position + 1]
-                if position + 1 < len(anchors)
-                else len(lines)
+                anchors[position + 1] if position + 1 < len(anchors) else len(lines)
             )
             entry = _experience_entry_from_anchor(lines, anchor_index, next_anchor)
 
@@ -402,9 +398,7 @@ def _extract_experience(section: str | None) -> list[ExperienceEntry]:
     # Fallback for résumé fragments that omit dates.
     entries = []
     blocks = [
-        block
-        for block in re.split(r"\n[ \t]*\n", section.strip())
-        if block.strip()
+        block for block in re.split(r"\n[ \t]*\n", section.strip()) if block.strip()
     ]
 
     for block in blocks:
@@ -442,9 +436,7 @@ def _extract_experience(section: str | None) -> list[ExperienceEntry]:
             elif PERIOD.search(line):
                 date_match = PERIOD.search(line)
                 period = (
-                    _clean_edge_punctuation(date_match.group(0))
-                    if date_match
-                    else ""
+                    _clean_edge_punctuation(date_match.group(0)) if date_match else ""
                 )
                 organization = _clean_edge_punctuation(
                     PERIOD.sub("", line).strip(" |·—–-")
@@ -468,11 +460,7 @@ def extract(resume_text: str) -> ExtractedData:
     if not isinstance(resume_text, str):
         raise TypeError("resume_text must be a string")
 
-    text = (
-        resume_text.removeprefix("\ufeff")
-        .replace("\r\n", "\n")
-        .replace("\r", "\n")
-    )
+    text = resume_text.removeprefix("\ufeff").replace("\r\n", "\n").replace("\r", "\n")
 
     sections = _section_spans(text)
     name = _extract_name(text)

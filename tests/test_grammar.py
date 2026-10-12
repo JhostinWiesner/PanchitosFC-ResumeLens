@@ -433,7 +433,7 @@ def test_building_candidate_profile(accepted):
 
 
 def test_multiline_free_text():
-    """TC-G28: Multi-line summary text survives the DSL round trip."""
+    """TC-G25: Multi-line summary text survives the DSL round trip."""
     candidate = replace(
         make_wednesday_candidate(),
         summary="First line.\nSecond line.",
@@ -444,7 +444,7 @@ def test_multiline_free_text():
 
 
 def test_non_ascii_characters():
-    """TC-G29: Non-ASCII names and locations survive the DSL round trip."""
+    """TC-G26: Non-ASCII names and locations survive the DSL round trip."""
     candidate = replace(
         make_wednesday_candidate(),
         name="José Núñez",
@@ -467,7 +467,7 @@ def test_non_ascii_characters():
     ids=["TC-G31-short", "TC-G31-plus"],
 )
 def test_email_forms(email):
-    """TC-G30: Supported email forms survive the DSL round trip."""
+    """TC-G27: Supported email forms survive the DSL round trip."""
     candidate = replace(
         make_wednesday_candidate(),
         contact=ContactInfo(email=email),
