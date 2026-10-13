@@ -1,11 +1,8 @@
 # PanchitosFC - ResumeLens
 
-ResumeLens addresses the fact that the same qualification can be written in
-many ways, while each professional profile requires a different combination of
-qualifications. It checks whether qualifications explicitly found in a
-plain-text résumé satisfy a formally defined pattern for a chosen profile and
-produces a validated HTML profile. It does not rank candidates or make hiring
-decisions.
+ResumeLens addresses the fact that the same qualification can be written in many ways, while each professional profile requires a different combination of qualifications. It checks whether qualifications explicitly found in a plain-text résumé satisfy a formally defined pattern for a chosen profile and produces a validated HTML profile. It does not rank candidates or make hiring decisions.
+
+**Live demo:** [ResumeLens on Streamlit](https://panchitos-fc.streamlit.app/). To try it, upload one of the résumés in [`samples/`](samples/).
 
 ## Pipeline
 
@@ -38,18 +35,11 @@ qualifications and profile eligibility are defined in
 
 ## Catalog, input, and limitations
 
-The canonical catalog is [`core/catalog.json`](core/catalog.json); add a
-qualification there with a unique canonical name, category, aliases, and
-defined profile identifiers ([catalog design](docs/stage2_normalization.md)).
+The canonical catalog is [`core/catalog.json`](core/catalog.json); add a qualification there with a unique canonical name, category, aliases, and defined profile identifiers ([catalog design](docs/stage2_normalization.md)).
 
-The app accepts UTF-8 plain-text `.txt` résumés. Skills are searched inside
-recognized résumé sections; see the [recognized headers and extraction
-contract](docs/stage1_extraction.md).
+The app accepts UTF-8 plain-text `.txt` résumés. Skills are searched inside recognized résumé sections; see the [recognized headers and extraction contract](docs/stage1_extraction.md).
 
-Important limitations: unrecognized-section text is not searched for skills;
-recognition requires every category in the selected profile; and the input
-sequence must follow the profile's category order. See the [extraction](docs/stage1_extraction.md),
-[ordering](docs/stage2_ordering.md), and [recognition](docs/stage3_recognition.md)
+Important limitations: unrecognized-section text is not searched for skills; recognition requires every category in the selected profile; and the input sequence must follow the profile's category order. See the [extraction](docs/stage1_extraction.md), [ordering](docs/stage2_ordering.md), and [recognition](docs/stage3_recognition.md)
 documentation for the remaining cases.
 
 ## Running
@@ -62,9 +52,7 @@ streamlit run app.py
 python -m pytest tests/
 ```
 
-The app evaluates an uploaded résumé and displays the acceptance result,
-validated HTML profile, and an HTML download. [`samples/`](samples/) contains
-ten plain-text profile examples and edge-case inputs.
+The app evaluates an uploaded résumé and displays the acceptance result, validated HTML profile, and an HTML download. [`samples/`](samples/) contains ten plain-text profile examples and edge-case inputs.
 
 ## Project structure
 
