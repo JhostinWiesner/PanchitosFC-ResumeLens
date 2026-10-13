@@ -13,7 +13,7 @@ Software Engineer | Proyecto Integral Demo | 2023-2026
 - Desarrollo de aplicaciones con Python, JavaScript, React y Node.js.
 - Diseño y consulta de bases de datos PostgreSQL.
 - Procesamiento de datos con pandas y NumPy.
-- Construcción de flujos de datos con Apache Airflow.
+- Construcción de flujos de datos con Apache Airflow y Apache Spark.
 - Entrenamiento de modelos básicos con scikit-learn.
 - Empaquetado de servicios con Docker y administración de Kubernetes.
 - Automatización de integración continua con Jenkins.
@@ -24,4 +24,4 @@ Education
 Ingeniería de Sistemas | Universidad Demo | 2022-2026
 
 Technical Skills
-Python, JavaScript, React, Node.js, PostgreSQL, pandas, NumPy, Apache Airflow, scikit-learn, Docker, Kubernetes, Jenkins, Terraform, AWS, Git
+Python, JavaScript, React, Node.js, PostgreSQL, pandas, NumPy, Apache Airflow, scikit-learn, Docker, Kubernetes, Jenkins, Terraform, AWS, Git, Apache Spark
